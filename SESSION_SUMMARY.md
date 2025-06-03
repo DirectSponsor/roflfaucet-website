@@ -23,16 +23,27 @@
 - **Integration**: With main platform's Useless Token economy
 - **Sustainability**: No real money required, just database tokens
 
-## 📁 **FILES CREATED AND COMMITTED**
+## 📁 **PROJECT LOCATION MOVED & INTEGRATED**
 
-### Core Project Files
+### ✅ **NEW LOCATION**: `/home/andy/Documents/websites/rofl/roflfaucet/`
+**Moved from**: `/home/andy/Documents/websites/clickforcharity.net/roflfaucet/`
+
+### 🎯 **Content Integration Strategy**
+Now integrated with existing content collections:
+- **Curated GIFs**: `/rofl/giphy01.txt`, `/rofl/giphy02.txt` - External Giphy links
+- **Image Assets**: `/rofl/img/` - Local funny images and animations
+- **Videos**: `/rofl/videos/` - Video content collection
+- **External Lists**: Various `.txt` files with links to imgur, postimage, etc.
+- **WordPress Placeholder**: `/rofl/rofl placeholder/` - Current live site assets
+
+### 📂 **Core Project Files**
 - **README.md** - Complete project documentation with API specs
 - **package.json** - Node.js dependencies and scripts
 - **Dockerfile** - Container deployment configuration
 - **.env.example** - Environment template with token settings
 - **.gitignore** - Comprehensive ignore rules
 
-### Infrastructure Documentation
+### 📂 **Infrastructure Documentation**
 - **DEPLOYMENT.md** - Complete deployment strategy for shared VPS
 - **BACKUP_STRATEGY.md** - Comprehensive backup planning with Servarica
 - **INFRASTRUCTURE_SETUP.md** - Full infrastructure summary

@@ -128,5 +128,38 @@ ClickForCharity Organization
 - **Impact reporting**: "Your faucet activity funded $X for charity Y"
 - **Viral potential**: Social sharing of charitable impact
 
-This infrastructure creates a foundation for a unique cryptocurrency faucet that combines entertainment, charity, and community engagement in an innovative way.
+## Backup Infrastructure
+
+### Dedicated Backup Server
+**Servarica 1 (209.209.10.41)**
+- **Specs**: 1GB RAM, 1 vCPU, 1TB HDD RAIDz2
+- **Cost**: $29/year
+- **Purpose**: Centralized backup storage for all servers
+- **Access**: SSH/SFTP (WebDAV SSL broken, needs fixing)
+- **Storage**: 1TB for automated daily backups
+
+### Backup Strategy
+- **Daily automated backups** via rsync/SFTP
+- **30-day retention** policy
+- **Database dumps**: Listmonk PostgreSQL + ROFLFaucet MySQL
+- **Configuration backups**: nginx, SSL certs, Docker configs
+- **Disaster recovery**: Complete restore procedures documented
+- **Monitoring**: Storage usage and backup success alerts
+
+### Implementation Tasks
+1. **SSH key setup** between production and backup servers
+2. **Backup script creation** and cron job configuration
+3. **WebDAV SSL fix** (or continue with SFTP)
+4. **Automated monitoring** and alerting setup
+
+See [BACKUP_STRATEGY.md](BACKUP_STRATEGY.md) for complete details.
+
+## Total Infrastructure Cost
+- **Production VPS**: $25/year (ES7 - Listmonk + ROFLFaucet)
+- **Backup Server**: $29/year (Servarica - 1TB storage)
+- **Domain**: $12/year (roflfaucet.com)
+- **SSL**: Free (Let's Encrypt)
+- **TOTAL**: $66/year for professional faucet + backup infrastructure
+
+This infrastructure creates a foundation for a unique cryptocurrency faucet that combines entertainment, charity, and community engagement in an innovative way, with enterprise-level backup protection.
 

@@ -29,13 +29,15 @@
 
 ## Infrastructure Options
 
-### Option 1: VPS Deployment (Recommended)
-**Same setup as clickforcharity.net**
-- Use existing VPS infrastructure knowledge
+### Option 1: Shared VPS Deployment (Recommended - $25/year!)
+**Same VPS as Listmonk (89.116.44.206)**
+- **Specs**: 3GB RAM, 1 Core, 100GB disk, 3TB bandwidth
+- **Cost**: Amazing $25/year - use existing infrastructure
+- **Services**: Listmonk (port 9000) + ROFLFaucet (port 3000)
 - Docker deployment with docker-compose
-- Nginx reverse proxy
+- Nginx reverse proxy for both services
 - SSL certificates via Let's Encrypt
-- Shared resources with main platform
+- Shared monitoring and backups
 
 ### Option 2: Cloud Hosting
 **Scalable but more complex**
@@ -195,11 +197,15 @@ lncli exportchanbackup --all --output_file /backup/channels_$(date +%Y%m%d).back
 
 ## Cost Estimation
 
-### Monthly Hosting (VPS)
-- **Server**: $20-50/month (shared with main platform)
-- **Domain**: $12/year
+### Actual Hosting Costs (Shared VPS)
+- **Server**: $25/year (shared with Listmonk - incredible value!)
+- **Domain**: $12/year for roflfaucet.com
 - **SSL**: Free (Let's Encrypt)
-- **Lightning**: Node operational costs
+- **Total**: ~$37/year for professional faucet hosting
+
+### Migration Costs (if needed later)
+- **Dedicated ROFLFaucet VPS**: $60-180/year
+- **Dedicated Listmonk VPS**: $60-180/year
 
 ### Scaling Considerations
 - Traffic growth handling

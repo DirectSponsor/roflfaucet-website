@@ -1,15 +1,16 @@
 # ROFLFaucet
 
-**A humorous Bitcoin faucet system for clickforcharity.net**
+**A humorous Useless Token faucet system for clickforcharity.net**
 
 ## Overview
 
-ROFLFaucet is a Bitcoin faucet designed to integrate with the clickforcharity.net platform, providing users with small amounts of cryptocurrency while supporting charitable causes. The name combines "ROFL" (Rolling On the Floor Laughing) with "faucet" to emphasize the fun, community-driven nature of the platform.
+ROFLFaucet is a Useless Token faucet designed to integrate with the clickforcharity.net platform, providing users with free Useless Tokens for gamification and charity voting. The name combines "ROFL" (Rolling On the Floor Laughing) with "faucet" to emphasize the fun, community-driven nature of the platform.
 
 ## Features
 
-- **Bitcoin Lightning Network** integration for instant, low-fee payouts
-- **Useless Token** integration for gamification
+- **Free Useless Tokens** dispensed to users for engagement
+- **Gamification system** with achievements and leaderboards
+- **Charity voting power** - tokens influence revenue allocation
 - **Anti-bot protection** with various verification methods
 - **Timer-based claims** to prevent abuse
 - **Admin dashboard** for faucet management
@@ -19,9 +20,9 @@ ROFLFaucet is a Bitcoin faucet designed to integrate with the clickforcharity.ne
 ## Technical Stack
 
 - **Backend**: Node.js/Express or PHP (TBD)
-- **Database**: MySQL/PostgreSQL
-- **Frontend**: HTML5, CSS3, JavaScript
-- **Lightning**: LND/CLN integration
+- **Database**: MySQL/PostgreSQL for user accounts and token balances
+- **Frontend**: HTML5, CSS3, JavaScript (responsive design)
+- **Token System**: Database-backed Useless Token management
 - **Docker**: Containerized deployment
 
 ## Integration Points
@@ -57,8 +58,8 @@ npm run dev
 
 See `config/` directory for:
 - Database configuration
-- Lightning Network settings
-- Faucet parameters (amounts, timers, etc.)
+- Useless Token distribution settings
+- Faucet parameters (token amounts, timers, etc.)
 - Anti-bot protection settings
 
 ## API Documentation
@@ -67,15 +68,30 @@ See `config/` directory for:
 ```
 POST /api/claim
 {
-  "address": "lightning_address_or_bitcoin_address",
-  "captcha": "captcha_response",
-  "user_token": "auth_token"
+  "user_id": "authenticated_user_id",
+  "captcha": "captcha_response"
+}
+
+Response:
+{
+  "success": true,
+  "tokens_awarded": 50,
+  "next_claim_time": "2024-01-01T12:00:00Z",
+  "total_balance": 1250
 }
 ```
 
 ### User Statistics
 ```
 GET /api/user/:id/stats
+
+Response:
+{
+  "total_tokens": 1250,
+  "total_claims": 25,
+  "last_claim": "2024-01-01T11:00:00Z",
+  "next_claim_available": "2024-01-01T12:00:00Z"
+}
 ```
 
 ### Admin Functions
@@ -86,27 +102,29 @@ POST /api/admin/settings
 
 ## Development Roadmap
 
-### Phase 1: Core Faucet
-- [ ] Basic faucet functionality
-- [ ] Timer system
+### Phase 1: Core Token Faucet
+- [ ] Basic Useless Token dispensing
+- [ ] Timer system (hourly/daily claims)
 - [ ] Simple captcha protection
-- [ ] Bitcoin address validation
+- [ ] User account integration
 
-### Phase 2: Lightning Integration
-- [ ] Lightning Network payouts
-- [ ] Invoice generation
-- [ ] Payment verification
+### Phase 2: Gamification Features
+- [ ] Achievement system
+- [ ] Leaderboards
+- [ ] Bonus multipliers
+- [ ] Streak rewards
 
 ### Phase 3: Platform Integration
-- [ ] User authentication sync
-- [ ] Useless Token rewards
-- [ ] Main site API integration
+- [ ] User authentication sync with main platform
+- [ ] Token balance synchronization
+- [ ] Charity voting integration
+- [ ] Cross-platform analytics
 
 ### Phase 4: Advanced Features
 - [ ] Advanced anti-bot protection
 - [ ] Admin dashboard
-- [ ] Analytics and reporting
-- [ ] Mobile app support
+- [ ] Mobile-responsive design
+- [ ] Social sharing features
 
 ## Contributing
 

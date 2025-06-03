@@ -1,7 +1,7 @@
 {
   "name": "roflfaucet",
   "version": "0.1.0",
-  "description": "A humorous Bitcoin faucet system for clickforcharity.net",
+  "description": "A humorous Useless Token faucet system for clickforcharity.net",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
@@ -12,12 +12,13 @@
     "docker:run": "docker run -p 3000:3000 roflfaucet"
   },
   "keywords": [
-    "bitcoin",
+    "useless-tokens",
     "faucet",
-    "lightning",
+    "gamification",
     "charity",
-    "cryptocurrency",
-    "gamification"
+    "tokens",
+    "engagement",
+    "rewards"
   ],
   "author": "clickforcharity.net team",
   "license": "MIT",

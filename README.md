@@ -121,10 +121,17 @@ MIT License - see [LICENSE](LICENSE) for details.
 - [clickforcharity-social-media-extension](https://github.com/andysavage/clickforcharity-social-media-extension) - Main platform
 - [clickforcharity-useless-token](https://github.com/andysavage/clickforcharity-useless-token) - Token system (planned)
 
+## Live Site
+
+🌐 **Visit**: [roflfaucet.com](https://roflfaucet.com)
+
+*Currently showing "Coming Sometime..." - this repository contains the development code for the upcoming faucet system.*
+
 ## Support
 
 For support and questions:
 - GitHub Issues: [Report bugs or request features](https://github.com/andysavage/clickforcharity-roflfaucet/issues)
 - Main project wiki: [nimno.net documentation](https://nimno.net/sites/clickforcharity-net/)
+- Live site: [roflfaucet.com](https://roflfaucet.com)
 - Community: [Join our discussions](https://clickforcharity.net/community)
 

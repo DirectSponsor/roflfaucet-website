@@ -149,7 +149,7 @@ class AutoVideoManager {
                             .replace(/&lt;/g, '<')
                             .replace(/&gt;/g, '>')
                             .replace(/&quot;/g, '"'),
-                        embedUrl: `https://www.youtube.com/embed/${idMatch[1]}`,
+                            embedUrl: `https://www.youtube.com/embed/${idMatch[1]}?rel=0`,
                         description: `YouTube video from @roflfaucet8041`,
                         publishedAt: publishedMatch ? publishedMatch[1] : new Date().toISOString(),
                         platform: 'youtube',

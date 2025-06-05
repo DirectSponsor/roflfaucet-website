@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optical Illusions Gallery - ROFLFaucet</title>
+    <meta name="description" content="Explore fascinating optical illusions and visual perception phenomena. Educational content featuring brain science and visual psychology.">
+    <meta name="keywords" content="optical illusions, visual perception, brain science, psychology, visual effects, illusions gallery">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Optical Illusions Gallery - ROFLFaucet">
+    <meta property="og:description" content="Explore fascinating optical illusions and learn about visual perception and brain science.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://roflfaucet.com/illusions">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E👁️%3C/text%3E%3C/svg%3E">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Illusions page specific styles */
+        .illusions-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .illusions-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .illusions-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .serious-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        /* Main layout for illusions page */
+        .illusions-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Center column with static ads and illusions */
+        .illusions-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        /* Static ad sections */
+        .static-ads-section {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .banner-ad-slot {
+            max-width: 970px;
+            width: 100%;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 90px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .banner-ad-slot img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        /* Square ads in 2-column grid */
+        .square-ads-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 620px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        
+        .square-ad-slot {
+            width: 300px;
+            height: 250px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-style: italic;
+            text-align: center;
+        }
+        
+        .square-ad-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        /* Illusion gallery container */
+        .illusion-gallery {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            background: white;
+        }
+        
+        .illusion-display {
+            position: relative;
+            width: 100%;
+            min-height: 400px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .illusion-display:hover {
+            transform: scale(1.02);
+        }
+        
+        .illusion-image {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 8px;
+        }
+        
+        .illusion-caption {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e1e8ed;
+        }
+        
+        .illusion-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+        
+        .illusion-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .illusion-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e1e8ed;
+        }
+        
+        .nav-dots {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ccc;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .nav-dot.active {
+            background: var(--primary-color);
+        }
+        
+        .illusion-nav-btn {
+            padding: 8px 16px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+        
+        .illusion-nav-btn:hover {
+            background: #357ABD;
+        }
+        
+        /* Sidebar content for non-ad network items */
+        .sidebar-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        .sidebar-card {
+            background: var(--bg-primary);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+        
+        .sidebar-card h3 {
+            padding: 1rem 1.5rem;
+            background: var(--bg-accent);
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+        
+        .sidebar-card-content {
+            padding: 1.5rem;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .illusions-layout {
+                grid-template-columns: 250px 1fr 250px;
+            }
+            
+            .square-ads-grid {
+                max-width: 520px;
+            }
+            
+            .square-ad-slot {
+                width: 250px;
+                height: 200px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .illusions-layout {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .square-ads-grid {
+                grid-template-columns: 1fr;
+                max-width: 300px;
+            }
+            
+            .square-ad-slot {
+                width: 100%;
+                height: 250px;
+            }
+            
+            .illusions-header h1 {
+                font-size: 2rem;
+            }
+        }
+        
+        /* Smart Floating Overlay - Perfect for any monitor size */
+        .illusion-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+        
+        .overlay-content {
+            position: relative;
+            /* Smart max-size prevents oversizing on large monitors */
+            max-width: min(90vw, 1200px); /* Never wider than 1200px */
+            max-height: min(90vh, 800px);  /* Never taller than 800px */
+            width: auto;
+            height: auto;
+        }
+        
+        .overlay-image {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+        
+        .overlay-caption {
+            background: white;
+            padding: 20px;
+            border-radius: 0 0 8px 8px;
+            color: #333;
+        }
+        
+        .overlay-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        .overlay-description {
+            line-height: 1.6;
+        }
+        
+        .overlay-close {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 40px;
+            height: 40px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .overlay-close:hover {
+            background: #f0f0f0;
+        }
+        
+        /* Mobile overlay adjustments */
+        @media (max-width: 768px) {
+            .overlay-content {
+                max-width: min(95vw, 600px);
+                max-height: min(95vh, 500px);
+            }
+            
+            .overlay-caption {
+                padding: 15px;
+            }
+            
+            .overlay-title {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="illusions-header">
+        <div class="container">
+            <h1>👁️ Optical Illusions Gallery</h1>
+            <p>Exploring the fascinating world of visual perception and brain science</p>
+            <div class="serious-badge">
+                🎯 Professional Content • Educational Focus
+            </div>
+        </div>
+    </header>
+    
+    <!-- Navigation back to main site -->
+    <div class="container" style="margin-bottom: 1rem;">
+        <a href="index.html" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">
+            ← Back to ROFLFaucet
+        </a>
+    </div>
+    
+    <!-- Main Content -->
+    <main class="illusions-layout">
+        <!-- Left Sidebar - Non-ad network content -->
+        <aside class="sidebar-content">
+            <!-- SatoshiHost Ecosystem -->
+            <div class="sidebar-card">
+                <h3>🌐 SatoshiHost</h3>
+                <div class="sidebar-card-content">
+                    <p><strong>Bitcoin-only hosting</strong></p>
+                    <p>Pay only for what you use!</p>
+                    <ul style="margin: 1rem 0; padding-left: 1.2rem;">
+                        <li>✓ Free SSL certificates</li>
+                        <li>✓ Personal service</li>
+                        <li>✓ DirectAdmin panel</li>
+                        <li>✓ Funds charity projects</li>
+                    </ul>
+                    <div style="text-align: center; background: #f8f9fa; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                        <span style="font-size: 1.1rem; font-weight: bold; color: var(--primary-color);">₿0.00003700/month</span><br>
+                        <small>Starter Plan</small>
+                    </div>
+                    <a href="https://satoshihost.com?ref=roflfaucet" target="_blank" 
+                       style="display: block; text-align: center; background: var(--primary-color); color: white; padding: 0.8rem; border-radius: 6px; text-decoration: none; font-weight: bold;">
+                        🚀 Get Started
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Brain Science Facts -->
+            <div class="sidebar-card">
+                <h3>🧠 Did You Know?</h3>
+                <div class="sidebar-card-content">
+                    <p><strong>Visual Processing</strong></p>
+                    <p>Your brain processes visual information 60,000 times faster than text!</p>
+                    
+                    <p style="margin-top: 1rem;"><strong>Optical Illusions</strong></p>
+                    <p>Illusions reveal how your brain makes assumptions to process visual information quickly.</p>
+                    
+                    <p style="margin-top: 1rem;"><strong>Brain Training</strong></p>
+                    <p>Studying illusions can improve your visual attention and cognitive flexibility.</p>
+                </div>
+            </div>
+            
+            <!-- User Stats -->
+            <div class="sidebar-card">
+                <h3>📊 Live Stats</h3>
+                <div class="sidebar-card-content">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; text-align: center;">
+                        <div>
+                            <span style="display: block; font-size: 1.3rem; font-weight: bold; color: var(--primary-color);">1,247</span>
+                            <span style="font-size: 0.8rem; color: var(--text-secondary);">Visitors Today</span>
+                        </div>
+                        <div>
+                            <span style="display: block; font-size: 1.3rem; font-weight: bold; color: var(--primary-color);">89</span>
+                            <span style="font-size: 0.8rem; color: var(--text-secondary);">Illusions Viewed</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Center Column - Ad network ads + illusions -->
+        <section class="illusions-content">
+            <!-- Static Ad Network Ads -->
+            <div class="static-ads-section">
+                <div class="banner-ad-slot" id="banner-top">
+                    <div>📢 Premium Banner Ad Space (728x90 or 970x250)<br><small>Static placement for advertiser verification</small></div>
+                </div>
+            </div>
+            
+            <div class="square-ads-grid">
+                <div class="square-ad-slot" id="square-ad-1">
+                    <div>📢 Network Square Ad 1<br>(300x250)<br><small>Static placement</small></div>
+                </div>
+                <div class="square-ad-slot" id="square-ad-2">
+                    <div>📢 Network Square Ad 2<br>(300x250)<br><small>Static placement</small></div>
+                </div>
+            </div>
+            
+            <!-- Illusion Gallery -->
+            <div class="illusion-gallery">
+                <div class="illusion-display" id="illusion-display" onclick="expandIllusion()">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect width='600' height='400' fill='%23f8f9fa'/%3E%3Ctext x='300' y='180' text-anchor='middle' font-family='Arial' font-size='24' fill='%23666'%3E👁️ Optical Illusion%3C/text%3E%3Ctext x='300' y='220' text-anchor='middle' font-family='Arial' font-size='16' fill='%23999'%3EClick to view illusion gallery%3C/text%3E%3Ctext x='300' y='250' text-anchor='middle' font-family='Arial' font-size='14' fill='%23999'%3E(Content will be loaded from your ROFL folders)%3C/text%3E%3C/svg%3E" 
+                         alt="Optical Illusion Placeholder" class="illusion-image" id="illusion-image">
+                </div>
+                
+                <div class="illusion-caption">
+                    <div class="illusion-title" id="illusion-title">Welcome to the Illusions Gallery</div>
+                    <div class="illusion-description" id="illusion-description">
+                        This gallery features optical illusions from your ROFL folders with educational captions. 
+                        Click any illusion to view it in a smart-sized overlay that looks perfect on any monitor - 
+                        never too big on huge screens, never too small on mobile devices.
+                    </div>
+                </div>
+                
+                <div class="illusion-controls">
+                    <div class="nav-dots">
+                        <div class="nav-dot active"></div>
+                        <div class="nav-dot"></div>
+                        <div class="nav-dot"></div>
+                        <div class="nav-dot"></div>
+                        <div class="nav-dot"></div>
+                    </div>
+                    <button class="illusion-nav-btn" onclick="nextIllusion()">Next Illusion →</button>
+                </div>
+            </div>
+            
+            <!-- Bottom Banner Ad -->
+            <div class="static-ads-section">
+                <div class="banner-ad-slot" id="banner-bottom">
+                    <div>📢 Bottom Banner Ad Space (970x250)<br><small>Post-content engagement placement</small></div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Right Sidebar - Non-ad network content -->
+        <aside class="sidebar-content">
+            <!-- Charity Spotlight -->
+            <div class="sidebar-card">
+                <h3>🌱 Charity Spotlight</h3>
+                <div class="sidebar-card-content">
+                    <h4 style="margin: 0 0 0.5rem 0;">Badilisha Tree Nursery</h4>
+                    <p style="margin-bottom: 1rem;">Supporting sustainable forestry in Kenya through community-based tree nurseries.</p>
+                    
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="font-size: 0.9rem; color: var(--text-secondary);">Monthly Goal:</span>
+                            <span style="font-weight: bold; color: var(--primary-color);">$50</span>
+                        </div>
+                        <div style="width: 100%; height: 8px; background: #e1e8ed; border-radius: 4px; overflow: hidden;">
+                            <div style="width: 68%; height: 100%; background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));"></div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">$34 raised this month</div>
+                    </div>
+                    
+                    <a href="index.html#voting" style="display: inline-block; background: var(--secondary-color); color: white; padding: 0.6rem 1.2rem; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
+                        Vote & Learn More
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Social Proof -->
+            <div class="sidebar-card">
+                <h3>🏆 User Achievements</h3>
+                <div class="sidebar-card-content">
+                    <p><strong>🎉 Recent Milestones</strong></p>
+                    <ul style="margin: 1rem 0; padding-left: 1.2rem; color: var(--text-secondary);">
+                        <li>1,247 users discovered illusions</li>
+                        <li>89 illusions viewed today</li>
+                        <li>34 users voted on charity projects</li>
+                        <li>$127 raised for charity this month</li>
+                    </ul>
+                    
+                    <p style="margin-top: 1rem;"><strong>🧠 Brain Training Progress</strong></p>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Join our community exploring the fascinating world of visual perception!</p>
+                    
+                    <a href="index.html" style="display: inline-block; background: var(--accent-color); color: white; padding: 0.6rem 1.2rem; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 500; margin-top: 1rem;">
+                        Join ROFLFaucet
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Ecosystem Links -->
+            <div class="sidebar-card">
+                <h3>🔗 Ecosystem</h3>
+                <div class="sidebar-card-content">
+                    <p style="margin-bottom: 1rem;"><strong>Connected Platforms</strong></p>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <a href="https://clickforcharity.net" target="_blank" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">📊 ClickForCharity</a><br>
+                        <small style="color: var(--text-secondary);">Transparent charity voting</small>
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <a href="index.html" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">🚰 ROFLFaucet</a><br>
+                        <small style="color: var(--text-secondary);">Free crypto + charity impact</small>
+                    </div>
+                    
+                    <div>
+                        <span style="color: var(--text-secondary); font-weight: 500;">🚀 DirectSponsor</span><br>
+                        <small style="color: var(--text-secondary);">Sustainable funding (coming soon)</small>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </main>
+    
+    <!-- Smart Floating Overlay (perfect size for any monitor) -->
+    <div class="illusion-overlay" id="illusion-overlay" onclick="closeOverlay(event)">
+        <div class="overlay-content" onclick="event.stopPropagation()">
+            <button class="overlay-close" onclick="closeOverlay()">&times;</button>
+            <img src="" alt="Illusion" class="overlay-image" id="overlay-image">
+            <div class="overlay-caption">
+                <div class="overlay-title" id="overlay-title">Illusion Title</div>
+                <div class="overlay-description" id="overlay-description">
+                    Detailed explanation of the illusion and the science behind it.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript for functionality -->
+    <script>
+        let currentIllusion = 0;
+        const totalIllusions = 5; // Placeholder count
+        
+        function nextIllusion() {
+            currentIllusion = (currentIllusion + 1) % totalIllusions;
+            updateNavDots();
+            // TODO: Load actual illusion content from ROFL folders
+            console.log('Loading illusion', currentIllusion + 1);
+        }
+        
+        function updateNavDots() {
+            const dots = document.querySelectorAll('.nav-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentIllusion);
+            });
+        }
+        
+        function expandIllusion() {
+            // Get current illusion data
+            const currentImage = document.getElementById('illusion-image').src;
+            const currentTitle = document.getElementById('illusion-title').textContent;
+            const currentDescription = document.getElementById('illusion-description').textContent;
+            
+            // Update overlay content
+            document.getElementById('overlay-image').src = currentImage;
+            document.getElementById('overlay-title').textContent = currentTitle;
+            document.getElementById('overlay-description').textContent = currentDescription;
+            
+            // Show overlay with smart sizing
+            document.getElementById('illusion-overlay').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeOverlay(event) {
+            // Close on background click or close button
+            if (!event || event.target.id === 'illusion-overlay' || event.target.className === 'overlay-close') {
+                document.getElementById('illusion-overlay').style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        }
+        
+        // Close with ESC key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeOverlay();
+            }
+        });
+        
+        // Auto-rotate illusions every 45 seconds
+        setInterval(nextIllusion, 45000);
+        
+        // Initialize
+        updateNavDots();
+    </script>
+</body>
+</html>
+

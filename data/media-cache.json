@@ -1,0 +1,26 @@
+{
+  "imgur": [
+    {
+      "id": "imgur-album-KyGEZvL",
+      "type": "imgur-album",
+      "albumId": "KyGEZvL",
+      "embedHtml": "<blockquote class=\"imgur-embed-pub\" lang=\"en\" data-id=\"a/KyGEZvL\"><a href=\"https://imgur.com/a/KyGEZvL\">SB2</a></blockquote><script async src=\"//s.imgur.com/min/embed.js\" charset=\"utf-8\"></script>",
+      "title": "Imgur Album - RoflFaucet",
+      "author": "RoflFaucet",
+      "width": 540,
+      "height": 500,
+      "platform": "imgur",
+      "isAlbum": true,
+      "mediaCount": "multiple",
+      "supportsAutoplay": true,
+      "supportsLoop": true
+    }
+  ],
+  "video": [],
+  "giphy": [],
+  "lastUpdated": {
+    "imgur": "2025-06-05T15:37:40.600Z",
+    "video": null,
+    "giphy": null
+  }
+}

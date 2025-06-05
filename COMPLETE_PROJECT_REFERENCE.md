@@ -11,6 +11,14 @@
 - **Democratic charity allocation** - tokens = voting power for revenue distribution
 - **Humor-driven engagement** - keeps users entertained and coming back
 
+### 2025 Strategic Advantages (vs Original Wiki Concept)
+- **Simplified Development**: No complex video puzzles, just traditional hCaptcha
+- **Enhanced Sustainability**: No real money payouts required
+- **Multi-Revenue Streams**: Ad revenue + hCaptcha payments + donations
+- **Viral Potential**: Shareable charity impact stories
+- **Community-Driven**: Democratic revenue allocation model
+- **Dual-Platform Strategy**: YouTube for reach + Odysee for decentralized ethos
+
 ### Domain & Branding
 - **Live Domain**: https://roflfaucet.com (WordPress placeholder currently)
 - **Branding Theme**: ROFL emoji, humor, "rolling on floor laughing"
@@ -54,16 +62,28 @@
 ### External Video Content
 - **Location**: Separate 5TB backup disk (not currently accessible)
 - **Content**: Lots of funny short videos
-- **Strategy**: Use for YouTube channel content and future expansion
+- **Strategy**: Dual-platform distribution (YouTube + Odysee)
 - **Current Status**: Available when larger SSD obtained
+- **Wiki Validation**: Original plan confirmed - video content for engagement
+- **2025 Enhancement**: 
+  - **YouTube**: Mainstream reach, algorithm promotion, broad audience
+  - **Odysee**: Decentralized ethos, crypto-friendly community, censorship resistance
+  - Cross-platform promotion and audience building
 
 ## 🎥 **TRAFFIC GENERATION STRATEGY**
 
-### YouTube Channel Integration
-- **Concept**: Channel full of short funny videos drives traffic to faucet
+### Dual-Platform Video Integration
+- **YouTube Strategy**: Mainstream reach and algorithm-driven discovery
+  - Broader audience, higher traffic potential
+  - Algorithm promotion of engaging content
+  - Comments/community features
+- **Odysee Strategy**: Crypto/decentralized community alignment
+  - Aligns with open source, decentralized values
+  - Crypto-friendly audience already interested in tokens
+  - Censorship resistance
 - **Content Source**: Videos from 5TB disk + curated external content
-- **Flow**: YouTube → ROFLFaucet → Useless Tokens → Charity Voting
-- **Engagement Loop**: Funny videos → Token rewards → More engagement
+- **Flow**: Video Platforms → ROFLFaucet → Useless Tokens → Charity Voting
+- **Cross-Promotion**: Each platform promotes the other + faucet
 
 ### Content Distribution Strategy
 1. **ROFLFaucet.com**: Primary faucet with embedded humor
@@ -71,12 +91,14 @@
 3. **Social Media**: Share funny content + charity impact stories
 4. **Cross-promotion**: Link between all platforms
 
-### Wiki Pages for Traffic Strategy
-**Relevant existing wiki pages** (to be referenced):
-- YouTube content strategy
-- Social media integration
-- Traffic generation methods
-- Content curation processes
+### Wiki Analysis Integration
+**Key insights from nimno.net/sites/roflfaucet/** (see WIKI_PAGE_ANALYSIS.md):
+- ✅ Humor-first approach validated as correct differentiator
+- ✅ Video content strategy confirmed for engagement
+- ✅ **hCaptcha integration**: Traditional faucet UX + revenue generation
+- ✅ **Dual-platform video**: YouTube + Odysee (enhanced from Odysee-only)
+- ✅ Democratic charity allocation (enhanced from optional donations)
+- ❌ Complex video puzzle anti-bot removed (simple captcha sufficient)
 
 ## 🏗️ **INFRASTRUCTURE SUMMARY**
 
@@ -108,6 +130,8 @@
 - **Backend**: Node.js + Express
 - **Database**: MySQL/PostgreSQL for token balances
 - **Frontend**: HTML5/CSS3/JavaScript (responsive)
+- **Captcha**: hCaptcha integration (UX + revenue)
+- **Video Platforms**: YouTube API + Odysee integration
 - **Deployment**: Docker containers
 - **Reverse Proxy**: Nginx with SSL (Let's Encrypt)
 
@@ -116,6 +140,8 @@
 2. **Listmonk**: Email campaigns, user notifications
 3. **Charity System**: Monthly revenue allocation voting
 4. **Content System**: Random humor selection based on context
+5. **hCaptcha**: Revenue tracking and user verification
+6. **Video Platforms**: Cross-platform content management and promotion
 
 ## 🎮 **USELESS TOKEN ECOSYSTEM**
 

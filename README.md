@@ -6,16 +6,27 @@
 
 ROFLFaucet is a Useless Token faucet designed to integrate with the clickforcharity.net platform, providing users with free Useless Tokens for gamification and charity voting. The name combines "ROFL" (Rolling On the Floor Laughing) with "faucet" to emphasize the fun, community-driven nature of the platform.
 
+### 2025 Design Philosophy
+**Humor-First + Democratic Charity Allocation + Multi-Revenue Streams**
+- Differentiates from boring traditional faucets with curated funny content
+- Users vote with tokens on charity funding (democratic revenue allocation)
+- **Dual-platform video strategy**: YouTube for outreach + Odysee for decentralized ethos
+- **hCaptcha integration**: Traditional faucet UX + additional revenue stream
+- **Simplified development**: No complex video puzzles, just expected captcha
+
 ## Features
 
 - **Free Useless Tokens** dispensed to users for engagement
 - **Gamification system** with achievements and leaderboards
-- **Charity voting power** - tokens influence revenue allocation
-- **Anti-bot protection** with various verification methods
-- **Timer-based claims** to prevent abuse
+- **Democratic charity voting** - tokens = voting power for revenue allocation
+- **Context-aware humor content** - funny GIFs and images based on user state
+- **Dual-platform video strategy** - YouTube for reach + Odysee for decentralization
+- **hCaptcha revenue stream** - traditional faucet UX + paid per solve
+- **Timer-based claims** with patience-themed humor during cooldown
 - **Admin dashboard** for faucet management
 - **API endpoints** for integration with main platform
 - **Responsive design** for mobile and desktop
+- **Viral charity impact** - shareable stories of collective charitable impact
 
 ## Technical Stack
 
@@ -25,13 +36,58 @@ ROFLFaucet is a Useless Token faucet designed to integrate with the clickforchar
 - **Token System**: Database-backed Useless Token management
 - **Docker**: Containerized deployment
 
+## 💰 **hCaptcha Revenue Model**
+
+### Why hCaptcha is Perfect for Charitable Faucets
+
+hCaptcha transforms the traditional "anti-bot" security step into a genuine revenue generator for charity:
+
+**💵 Direct Revenue Generation:**
+- Website owners earn $0.0001 to $0.001 per CAPTCHA solved
+- Revenue scales automatically with user engagement
+- Creates sustainable, predictable funding for charity projects
+- No dependency on external donations or advertising
+
+**🎯 Mission Alignment:**
+- Every puzzle solved literally generates money for charity
+- Users can be honestly told "solving this helps fund charity"
+- Transforms security requirement into charitable action
+- Higher platform traffic = more charity funding
+
+**📈 Sustainable Growth:**
+- Revenue grows naturally with platform popularity
+- Creates positive feedback loop: better platform → more users → more charity funding
+- Transparent funding model users can understand and support
+- Incentivizes platform improvement and user retention
+
+**🔧 Implementation Details:**
+- **Site Key**: `10000000-ffff-ffff-ffff-000000000001` (test key)
+- **Secret Key**: `0x0000000000000000000000000000000000000000` (test key)
+- **Production**: Requires real hCaptcha account for revenue generation
+- **Integration**: Frontend widget + backend verification
+- **Revenue Tracking**: Monitor earnings for transparent charity allocation
+
+**⚠️ Development Safety Guidelines:**
+- **Testing with Real Keys**: Only test real hCaptcha keys once to verify integration
+- **Development Mode**: Use test tokens (`test_token_*`) for ongoing development
+- **Avoid Localhost Abuse**: Extended testing on localhost may flag unusual activity
+- **Production Deployment**: Only use real keys continuously on live domains
+- **Safe Switching**: Backend accepts both real tokens and test tokens during development
+
 ## Integration Points
 
+### "Sign in with ClickForCharity" Authentication
+- OAuth-style authentication system
+- Single registration at ClickForCharity.net
+- Seamless access across all services
+- Unified user profiles and preferences
+- Cross-platform UselessCoin balance
+
 ### With Main Platform
-- User authentication sync
-- Useless Token reward system
-- Charity allocation voting
-- Profile integration
+- User authentication via OAuth tokens
+- Useless Token reward system synchronization
+- Charity allocation voting integration
+- Profile data synchronization
 
 ### With Useless Token System
 - Award tokens for faucet claims
@@ -60,7 +116,10 @@ See `config/` directory for:
 - Database configuration
 - Useless Token distribution settings
 - Faucet parameters (token amounts, timers, etc.)
-- Anti-bot protection settings
+- **hCaptcha integration** (site key, secret key, revenue tracking)
+- Content management settings (humor selection algorithms)
+- **Dual-platform video configuration** (YouTube + Odysee)
+- Charity voting system parameters
 
 ## API Documentation
 
@@ -104,27 +163,36 @@ POST /api/admin/settings
 
 ### Phase 1: Core Token Faucet
 - [ ] Basic Useless Token dispensing
+- [ ] **hCaptcha integration** (traditional UX + revenue)
 - [ ] Timer system (hourly/daily claims)
-- [ ] Simple captcha protection
+- [ ] Random humor content integration
 - [ ] User account integration
+- [ ] Context-aware content selection
 
-### Phase 2: Gamification Features
+### Phase 2: Content & Engagement
+- [ ] **Dual-platform video integration** (YouTube + Odysee)
+- [ ] Advanced humor content management
+- [ ] Cross-platform video promotion
 - [ ] Achievement system
 - [ ] Leaderboards
 - [ ] Bonus multipliers
 - [ ] Streak rewards
 
-### Phase 3: Platform Integration
+### Phase 3: Democratic Charity Features
 - [ ] User authentication sync with main platform
 - [ ] Token balance synchronization
-- [ ] Charity voting integration
+- [ ] Charity voting system integration
+- [ ] Democratic revenue allocation
+- [ ] Impact sharing and viral features
 - [ ] Cross-platform analytics
 
 ### Phase 4: Advanced Features
-- [ ] Advanced anti-bot protection
+- [ ] Advanced content curation
 - [ ] Admin dashboard
 - [ ] Mobile-responsive design
 - [ ] Social sharing features
+- [ ] Traffic analytics and optimization
+- [ ] Video content management
 
 ## Contributing
 

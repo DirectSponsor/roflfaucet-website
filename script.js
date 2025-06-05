@@ -1,0 +1,860 @@
+// ROFLFaucet JavaScript - Working Version
+console.log('ROFLFaucet script loading...');
+
+class ROFLFaucet {
+    constructor() {
+        this.apiBase = window.location.origin;
+        this.userId = localStorage.getItem('roflfaucet_userId');
+        this.username = localStorage.getItem('roflfaucet_username');
+        this.userStats = {
+            balance: 0,
+            totalClaims: 0,
+            canClaim: true,
+            nextClaimTime: null
+        };
+        this.captchaToken = null;
+        
+        console.log('ROFLFaucet initialized');
+        this.init();
+    }
+
+    init() {
+        console.log('Initializing...');
+        this.setupEventListeners();
+        this.checkUserSession();
+        this.loadGlobalStats();
+        this.startPeriodicUpdates();
+    }
+
+    setupEventListeners() {
+        console.log('Setting up event listeners...');
+        
+        // Signup button
+        const signupBtn = document.getElementById('signup-btn');
+        if (signupBtn) {
+            signupBtn.addEventListener('click', () => this.handleSignup());
+            console.log('Signup button found and connected');
+        }
+        
+        // Username input enter key
+        const usernameInput = document.getElementById('username-input');
+        if (usernameInput) {
+            usernameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.handleSignup();
+            });
+        }
+        
+        // Claim button
+        const claimBtn = document.getElementById('claim-btn');
+        if (claimBtn) {
+            claimBtn.addEventListener('click', () => this.handleClaim());
+            console.log('Claim button found and connected');
+        }
+        
+        // Refresh stats button
+        const refreshBtn = document.getElementById('refresh-stats');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => this.loadGlobalStats());
+        }
+    }
+
+    // Check if user has existing session
+    async checkUserSession() {
+        console.log('Checking user session...');
+        if (this.userId && this.username) {
+            console.log('Found existing user:', this.username);
+            await this.loadUserStats();
+            this.showUserInterface();
+        } else {
+            console.log('No existing user, showing signup');
+            this.showSignupInterface();
+        }
+    }
+
+    // Handle user signup
+    async handleSignup() {
+        const usernameInput = document.getElementById('username-input');
+        const username = usernameInput?.value?.trim();
+        
+        console.log('Attempting signup with username:', username);
+        
+        if (!username) {
+            this.showMessage('Please enter a username', 'error');
+            return;
+        }
+        
+        if (username.length < 3) {
+            this.showMessage('Username must be at least 3 characters', 'error');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${this.apiBase}/api/user/create`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username })
+            });
+            
+            const data = await response.json();
+            console.log('Signup response:', data);
+            
+            if (response.ok) {
+                this.userId = data.userId;
+                this.username = data.username;
+                
+                // Save to localStorage
+                localStorage.setItem('roflfaucet_userId', this.userId);
+                localStorage.setItem('roflfaucet_username', this.username);
+                
+                this.userStats = {
+                    balance: data.balance,
+                    totalClaims: data.totalClaims,
+                    canClaim: data.canClaim,
+                    nextClaimTime: null
+                };
+                
+                this.showUserInterface();
+                this.showMessage(`Welcome, ${this.username}! You can claim your first tokens now.`, 'success');
+                
+                // Update global stats
+                this.loadGlobalStats();
+            } else {
+                this.showMessage(data.error || 'Failed to create user', 'error');
+            }
+        } catch (error) {
+            console.error('Signup error:', error);
+            this.showMessage('Connection error. Please try again.', 'error');
+        }
+    }
+
+    // Load user statistics from API
+    async loadUserStats() {
+        if (!this.userId) return;
+        
+        try {
+            const response = await fetch(`${this.apiBase}/api/user/${this.userId}`);
+            const data = await response.json();
+            
+            if (response.ok) {
+                this.userStats = {
+                    balance: data.balance,
+                    totalClaims: data.totalClaims,
+                    canClaim: data.canClaim,
+                    nextClaimTime: data.nextClaimAvailable ? new Date(data.nextClaimAvailable) : null
+                };
+                
+                this.updateUI();
+                console.log('User stats updated:', this.userStats);
+            } else {
+                console.error('Failed to load user stats:', data.error);
+            }
+        } catch (error) {
+            console.error('Stats loading error:', error);
+        }
+    }
+
+    // Handle token claim - now shows captcha first
+    async handleClaim() {
+        if (!this.userId) {
+            this.showMessage('Please sign up first!', 'error');
+            return;
+        }
+        
+        if (!this.userStats.canClaim) {
+            const nextClaim = this.userStats.nextClaimTime;
+            if (nextClaim) {
+                this.showMessage(`You can claim again at ${nextClaim.toLocaleTimeString()}`, 'warning');
+            }
+            return;
+        }
+        
+        // Show captcha section
+        this.showCaptchaSection();
+    }
+
+    // Show hCaptcha section
+    showCaptchaSection() {
+        const captchaSection = document.getElementById('captcha-section');
+        const claimBtn = document.getElementById('claim-btn');
+        
+        if (captchaSection) {
+            captchaSection.style.display = 'block';
+        }
+        
+        if (claimBtn) {
+            claimBtn.style.display = 'none';
+        }
+        
+        // Set up captcha submit button
+        const captchaSubmitBtn = document.getElementById('captcha-submit-btn');
+        if (captchaSubmitBtn) {
+            captchaSubmitBtn.addEventListener('click', () => this.processClaim());
+        }
+        
+        // Always show fallback button for development (real captcha only works on production domain)
+        const fallbackElement = document.getElementById('captcha-fallback');
+        if (fallbackElement) {
+            fallbackElement.style.display = 'block';
+            console.log('Development mode: Using captcha fallback for localhost testing');
+        }
+    }
+
+    // Hide captcha section and show normal claim button
+    hideCaptchaSection() {
+        const captchaSection = document.getElementById('captcha-section');
+        const claimBtn = document.getElementById('claim-btn');
+        
+        if (captchaSection) {
+            captchaSection.style.display = 'none';
+        }
+        
+        if (claimBtn) {
+            claimBtn.style.display = 'block';
+        }
+        
+        // Reset captcha
+        this.captchaToken = null;
+        if (window.hcaptcha) {
+            window.hcaptcha.reset();
+        }
+    }
+
+    // Process claim after captcha is solved
+    async processClaim() {
+        if (!this.captchaToken) {
+            this.showMessage('Please complete the security check first!', 'warning');
+            return;
+        }
+        
+        const captchaSubmitBtn = document.getElementById('captcha-submit-btn');
+        const originalText = captchaSubmitBtn?.textContent;
+        
+        try {
+            if (captchaSubmitBtn) {
+                captchaSubmitBtn.disabled = true;
+                captchaSubmitBtn.textContent = '⏳ Processing...';
+            }
+            
+            const response = await fetch(`${this.apiBase}/api/claim`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    userId: this.userId,
+                    captchaToken: this.captchaToken
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                this.userStats.balance = data.newBalance;
+                this.userStats.totalClaims = data.totalClaims;
+                this.userStats.canClaim = false;
+                this.userStats.nextClaimTime = new Date(data.nextClaimAvailable);
+                
+                this.showMessage(data.message, 'success');
+                this.updateUI();
+                this.startCountdown();
+                this.hideCaptchaSection();
+                
+                // Update global stats
+                this.loadGlobalStats();
+            } else {
+                if (data.captchaError) {
+                    this.showMessage('Security check failed. Please try again.', 'error');
+                    // Reset captcha for retry
+                    this.captchaToken = null;
+                    if (window.hcaptcha) {
+                        window.hcaptcha.reset();
+                    }
+                    this.updateCaptchaSubmitButton();
+                } else {
+                    this.showMessage(data.error || 'Claim failed', 'error');
+                    this.hideCaptchaSection();
+                }
+            }
+        } catch (error) {
+            console.error('Claim error:', error);
+            this.showMessage('Connection error. Please try again.', 'error');
+            this.hideCaptchaSection();
+        } finally {
+            if (captchaSubmitBtn) {
+                captchaSubmitBtn.disabled = false;
+                captchaSubmitBtn.textContent = originalText;
+            }
+        }
+    }
+
+    // Update captcha submit button state
+    updateCaptchaSubmitButton() {
+        const captchaSubmitBtn = document.getElementById('captcha-submit-btn');
+        if (!captchaSubmitBtn) return;
+        
+        if (this.captchaToken) {
+            captchaSubmitBtn.disabled = false;
+            captchaSubmitBtn.textContent = '🚀 Claim Your Tokens!';
+            captchaSubmitBtn.style.background = '#4caf50';
+        } else {
+            captchaSubmitBtn.disabled = true;
+            captchaSubmitBtn.textContent = '⏳ Complete Security Check First';
+            captchaSubmitBtn.style.background = '#ccc';
+        }
+    }
+
+    // Load global statistics
+    async loadGlobalStats() {
+        console.log('Loading global stats...');
+        try {
+            const response = await fetch(`${this.apiBase}/api/stats`);
+            const data = await response.json();
+            
+            if (response.ok) {
+                this.updateGlobalStats(data);
+                console.log('Global stats loaded:', data);
+            } else {
+                console.error('Failed to load global stats:', data.error);
+            }
+        } catch (error) {
+            console.error('Global stats loading error:', error);
+        }
+    }
+
+    updateGlobalStats(stats) {
+        const totalUsersEl = document.getElementById('total-users');
+        const totalClaimsEl = document.getElementById('total-claims');
+        const totalTokensEl = document.getElementById('total-tokens');
+        
+        if (totalUsersEl) {
+            totalUsersEl.textContent = stats.totalUsers || 0;
+            console.log('Updated total users to:', stats.totalUsers);
+        }
+        if (totalClaimsEl) {
+            totalClaimsEl.textContent = stats.totalClaims || 0;
+        }
+        if (totalTokensEl) {
+            totalTokensEl.textContent = stats.totalTokensDistributed || 0;
+        }
+    }
+
+    // Update UI elements
+    updateUI() {
+        // Update username display
+        const usernameDisplay = document.getElementById('username-display');
+        if (usernameDisplay && this.username) {
+            usernameDisplay.textContent = this.username;
+        }
+        
+        // Update balance
+        const balanceDisplay = document.getElementById('balance-display');
+        if (balanceDisplay) {
+            balanceDisplay.textContent = this.userStats.balance || 0;
+        }
+        
+        // Update total claims
+        const claimsDisplay = document.getElementById('claims-display');
+        if (claimsDisplay) {
+            claimsDisplay.textContent = this.userStats.totalClaims || 0;
+        }
+        
+        // Update claim button
+        const claimBtn = document.getElementById('claim-btn');
+        if (claimBtn) {
+            claimBtn.disabled = !this.userStats.canClaim;
+            claimBtn.textContent = this.userStats.canClaim ? '🎲 Claim UselessCoins!' : 'Cooldown Active';
+        }
+    }
+
+    // Show/hide interface elements
+    showSignupInterface() {
+        const signupSection = document.getElementById('signup-section');
+        const userSection = document.getElementById('user-section');
+        
+        if (signupSection) signupSection.style.display = 'block';
+        if (userSection) userSection.style.display = 'none';
+        
+        console.log('Showing signup interface');
+    }
+    
+    showUserInterface() {
+        const signupSection = document.getElementById('signup-section');
+        const userSection = document.getElementById('user-section');
+        
+        if (signupSection) signupSection.style.display = 'none';
+        if (userSection) userSection.style.display = 'block';
+        
+        console.log('Showing user interface for:', this.username);
+    }
+
+    // Show messages to user
+    showMessage(message, type = 'info') {
+        console.log(`Message (${type}): ${message}`);
+        
+        const messageDiv = document.getElementById('message-display');
+        if (!messageDiv) {
+            alert(`${type.toUpperCase()}: ${message}`);
+            return;
+        }
+        
+        messageDiv.textContent = message;
+        messageDiv.className = `message-display ${type}`;
+        messageDiv.style.display = 'block';
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 5000);
+    }
+
+    // Start countdown timer
+    startCountdown() {
+        if (!this.userStats.nextClaimTime) return;
+        
+        const updateCountdown = () => {
+            const now = new Date();
+            const timeLeft = this.userStats.nextClaimTime - now;
+            
+            if (timeLeft <= 0) {
+                this.userStats.canClaim = true;
+                this.updateUI();
+                const countdownDisplay = document.getElementById('countdown-display');
+                if (countdownDisplay) {
+                    countdownDisplay.textContent = '00:00';
+                }
+                return;
+            }
+            
+            const minutes = Math.floor(timeLeft / 60000);
+            const seconds = Math.floor((timeLeft % 60000) / 1000);
+            
+            const countdownDisplay = document.getElementById('countdown-display');
+            if (countdownDisplay) {
+                countdownDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            setTimeout(updateCountdown, 1000);
+        };
+        
+        updateCountdown();
+    }
+
+    // Start periodic updates
+    startPeriodicUpdates() {
+        // Update stats every 30 seconds
+        setInterval(() => {
+            this.loadGlobalStats();
+            if (this.userId) {
+                this.loadUserStats();
+            }
+        }, 30000);
+    }
+}
+
+// Initialize the faucet when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing ROFLFaucet...');
+    try {
+        window.roflfaucet = new ROFLFaucet();
+        console.log('ROFLFaucet initialized successfully!');
+    } catch (error) {
+        console.error('Failed to initialize ROFLFaucet:', error);
+    }
+});
+
+// Global hCaptcha callback functions
+window.onCaptchaSuccess = function(token) {
+    console.log('hCaptcha solved, token:', token.substring(0, 20) + '...');
+    if (window.roflfaucet) {
+        window.roflfaucet.captchaToken = token;
+        window.roflfaucet.updateCaptchaSubmitButton();
+    }
+};
+
+// Simulate captcha success for development (fallback when hCaptcha doesn't load)
+window.simulateCaptchaSuccess = function() {
+    console.log('Simulating captcha success for testing');
+    // Generate a fake token for testing
+    const fakeToken = 'test_token_' + Math.random().toString(36).substr(2, 9);
+    if (window.roflfaucet) {
+        window.roflfaucet.captchaToken = fakeToken;
+        window.roflfaucet.updateCaptchaSubmitButton();
+    }
+};
+
+// Check if hCaptcha loaded properly and show fallback if needed
+setTimeout(() => {
+    const captchaElement = document.querySelector('.h-captcha');
+    const fallbackElement = document.getElementById('captcha-fallback');
+    
+    if (captchaElement && fallbackElement) {
+        // Check if hCaptcha widget was rendered (it adds iframe when successful)
+        const hasIframe = captchaElement.querySelector('iframe');
+        
+        if (!hasIframe) {
+            console.log('hCaptcha widget not loaded, showing fallback');
+            fallbackElement.style.display = 'block';
+        }
+    }
+}, 3000); // Wait 3 seconds for hCaptcha to load
+
+window.onCaptchaError = function(error) {
+    console.error('hCaptcha error:', error);
+    if (window.roflfaucet) {
+        window.roflfaucet.showMessage('Security check failed. Please try again.', 'error');
+        window.roflfaucet.captchaToken = null;
+        window.roflfaucet.updateCaptchaSubmitButton();
+    }
+};
+
+// Ad rotation functionality
+function rotateAds() {
+    // Pool of 3 placeholder ads for each slot
+    const adPools = {
+        1: [
+            'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="250" viewBox="0 0 300 250"><rect width="300" height="250" fill="%23e8f4fd"/><text x="150" y="110" text-anchor="middle" font-family="Arial" font-size="16" fill="%23333">🚀 Crypto Services</text><text x="150" y="135" text-anchor="middle" font-family="Arial" font-size="14" fill="%23666">Your Ad Here</text><text x="150" y="160" text-anchor="middle" font-family="Arial" font-size="12" fill="%23999">300x250 Banner</text></svg>',
+            'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="250" viewBox="0 0 300 250"><rect width="300" height="250" fill="%23f0f8ff"/><text x="150" y="110" text-anchor="middle" font-family="Arial" font-size="16" fill="%23333">💰 DeFi Platform</text><text x="150" y="135" text-anchor="middle" font-family="Arial" font-size="14" fill="%23666">Advertise Here</text><text x="150" y="160" text-anchor="middle" font-family="Arial" font-size="12" fill="%23999">300x250 Ad Space</text></svg>',
+            'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="250" viewBox="0 0 300 250"><rect width="300" height="250" fill="%23fff8e7"/><text x="150" y="110" text-anchor="middle" font-family="Arial" font-size="16" fill="%23333">🌐 Blockchain Tools</text><text x="150" y="135" text-anchor="middle" font-family="Arial" font-size="14" fill="%23666">Premium Spot</text><text x="150" y="160" text-anchor="middle" font-family="Arial" font-size="12" fill="%23999">300x250 Display</text></svg>'
+        ],
+        2: [
+            'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="300" height="300" fill="%23f5f5f5"/><text x="150" y="140" text-anchor="middle" font-family="Arial" font-size="16" fill="%23333">🎮 Gaming Platform</text><text x="150" y="165" text-anchor="middle" font-family="Arial" font-size="14" fill="%23666">Play & Earn</text><text x="150" y="190" text-anchor="middle" font-family="Arial" font-size="12" fill="%23999">300x300 Square</text></svg>',
+            'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="300" height="300" fill="%23f0fff0"/><text x="150" y="140" text-anchor="middle" font-family="Arial" font-size="16" fill="%23333">📱 Mobile Wallet</text><text x="150" y="165" text-anchor="middle" font-family="Arial" font-size="14" fill="%23666">Secure & Fast</text><text x="150" y="190" text-anchor="middle" font-family="Arial" font-size="12" fill="%23999">300x300 Ad</text></svg>',
+            'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="300" height="300" fill="%23fef0ff"/><text x="150" y="140" text-anchor="middle" font-family="Arial" font-size="16" fill="%23333">🔄 Exchange</text><text x="150" y="165" text-anchor="middle" font-family="Arial" font-size="14" fill="%23666">Trade Crypto</text><text x="150" y="190" text-anchor="middle" font-family="Arial" font-size="12" fill="%23999">300x300 Banner</text></svg>'
+        ],
+        3: [
+            'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="350" viewBox="0 0 300 350"><rect width="300" height="350" fill="%23fff0f0"/><text x="150" y="165" text-anchor="middle" font-family="Arial" font-size="16" fill="%23333">🏦 Crypto Bank</text><text x="150" y="190" text-anchor="middle" font-family="Arial" font-size="14" fill="%23666">Earn Interest</text><text x="150" y="215" text-anchor="middle" font-family="Arial" font-size="12" fill="%23999">300x350 Skyscraper</text></svg>',
+            'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="350" viewBox="0 0 300 350"><rect width="300" height="350" fill="%23f0f0ff"/><text x="150" y="165" text-anchor="middle" font-family="Arial" font-size="16" fill="%23333">🔒 Security Suite</text><text x="150" y="190" text-anchor="middle" font-family="Arial" font-size="14" fill="%23666">Protect Assets</text><text x="150" y="215" text-anchor="middle" font-family="Arial" font-size="12" fill="%23999">300x350 Tower</text></svg>',
+            'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="350" viewBox="0 0 300 350"><rect width="300" height="350" fill="%23f8f8f0"/><text x="150" y="165" text-anchor="middle" font-family="Arial" font-size="16" fill="%23333">📈 Trading Bot</text><text x="150" y="190" text-anchor="middle" font-family="Arial" font-size="14" fill="%23666">Auto Profit</text><text x="150" y="215" text-anchor="middle" font-family="Arial" font-size="12" fill="%23999">300x350 Tall</text></svg>'
+        ]
+    };
+    
+    // Rotate ads for each slot
+    document.querySelectorAll('.rotating-ad').forEach(function(img) {
+        const slot = parseInt(img.dataset.adSlot);
+        if (adPools[slot]) {
+            const randomAd = adPools[slot][Math.floor(Math.random() * adPools[slot].length)];
+            img.src = randomAd;
+        }
+    });
+    
+    console.log('Ads rotated');
+}
+
+// Rotate ads on page load and every 30 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    rotateAds();
+    setInterval(rotateAds, 30000); // Rotate every 30 seconds
+    
+    // Load initial video on page load
+    loadNewVideo();
+    
+    // Load sidebar media content
+    loadSidebarMedia();
+    
+    // Rotate sidebar media every 45 seconds (different timing from ads)
+    setInterval(loadSidebarMedia, 45000);
+});
+
+// Load media content for sidebar ad spaces
+async function loadSidebarMedia() {
+    const sidebarSlots = document.querySelectorAll('.rotating-ad[data-ad-slot]');
+    
+    sidebarSlots.forEach(async (slot, index) => {
+        // Every few rotations, show Imgur content instead of placeholder ads
+        if (Math.random() < 0.3) { // 30% chance of showing Imgur content
+            try {
+                const response = await fetch('/api/media/random');
+                const media = await response.json();
+                
+                if (response.ok && media && media.type === 'imgur-album') {
+                    // Replace the ad slot with Imgur content
+                    const container = slot.parentElement;
+                    const adContent = container.querySelector('.ad-content');
+                    
+                    if (adContent) {
+                        // Create a container for the Imgur embed
+                        const mediaContainer = document.createElement('div');
+                        mediaContainer.className = 'sidebar-media-container';
+                        mediaContainer.style.cssText = `
+                            width: 100%;
+                            height: auto;
+                            border-radius: 8px;
+                            overflow: hidden;
+                            background: #f8f9fa;
+                        `;
+                        
+                        // Add the Imgur embed HTML
+                        mediaContainer.innerHTML = media.embedHtml;
+                        
+                        // Replace ad content temporarily
+                        const originalContent = adContent.innerHTML;
+                        adContent.innerHTML = '';
+                        adContent.appendChild(mediaContainer);
+                        
+                        // Load Imgur script if needed
+                        if (media.embedHtml.includes('embed.js')) {
+                            loadImgurEmbedScript();
+                        }
+                        
+                        // Update the ad header to show it's content
+                        const adHeader = container.querySelector('.ad-label');
+                        const originalLabel = adHeader ? adHeader.textContent : '';
+                        if (adHeader) {
+                            adHeader.textContent = 'Featured Content';
+                        }
+                        
+                        // Restore original ad after 30 seconds
+                        setTimeout(() => {
+                            if (adContent) {
+                                adContent.innerHTML = originalContent;
+                            }
+                            if (adHeader) {
+                                adHeader.textContent = originalLabel;
+                            }
+                        }, 30000); // Show for 30 seconds
+                    }
+                }
+            } catch (error) {
+                console.log('Could not load sidebar media:', error.message);
+                // Continue with normal ad rotation
+            }
+        }
+    });
+}
+
+// Enhanced Media loading functionality - supports videos, images, and smart format selection
+async function loadNewVideo() {
+    const mediaContainer = document.getElementById('video-container');
+    const odyseePromotion = document.getElementById('odysee-promotion');
+    
+    if (!mediaContainer) {
+        console.log('Media container not found');
+        return;
+    }
+    
+    try {
+        console.log('Loading new media...');
+        
+        // Show loading state
+        mediaContainer.style.opacity = '0.5';
+        
+        // Try enhanced media API first, fallback to video API
+        let response, media;
+        try {
+            response = await fetch('/api/media/random');
+            media = await response.json();
+        } catch (mediaError) {
+            console.log('Enhanced media API not available, falling back to video API');
+            response = await fetch('/api/video/random');
+            media = await response.json();
+        }
+        
+        if (response.ok && media) {
+            console.log('Loaded media:', media.title, '(Type:', media.type || 'video', ')');
+            
+            // Handle different media types with smart format selection
+            await displayMedia(media, mediaContainer);
+            
+            // Handle platform-specific promotions
+            handlePlatformPromotions(media, odyseePromotion);
+            
+            // Restore opacity
+            mediaContainer.style.opacity = '1';
+        } else {
+            console.error('Failed to load media:', media);
+            showFallbackContent(mediaContainer);
+        }
+        
+    } catch (error) {
+        console.error('Error loading media:', error);
+        showErrorContent(mediaContainer);
+    }
+}
+
+// Display media based on type and format selection
+async function displayMedia(media, container) {
+    const displayMethod = media.displayMethod || getDisplayMethodFromMedia(media);
+    
+    switch (displayMethod) {
+        case 'embed-html':
+            // Imgur albums and custom HTML embeds
+            displayEmbedHtml(media, container);
+            break;
+            
+        case 'iframe':
+            // YouTube, Odysee, Giphy iframes
+            displayIframe(media, container);
+            break;
+            
+        case 'smart-image':
+            // Smart format selection for images (MP4 vs GIF)
+            await displaySmartImage(media, container);
+            break;
+            
+        default:
+            // Fallback to iframe
+            displayIframe(media, container);
+    }
+}
+
+// Display HTML embed content (Imgur albums)
+function displayEmbedHtml(media, container) {
+    if (media.embedHtml) {
+        container.innerHTML = media.embedHtml;
+        
+        // If it's an Imgur embed, make sure the script loads
+        if (media.platform === 'imgur' && media.embedHtml.includes('embed.js')) {
+            loadImgurEmbedScript();
+        }
+    } else {
+        showFallbackContent(container);
+    }
+}
+
+// Display iframe content (YouTube, Odysee, Giphy)
+function displayIframe(media, container) {
+    const iframe = container.querySelector('iframe') || document.createElement('iframe');
+    
+    // Set iframe attributes
+    iframe.id = 'video-embed';
+    iframe.width = '100%';
+    iframe.height = '315';
+    iframe.frameBorder = '0';
+    iframe.allowFullscreen = true;
+    iframe.loading = 'lazy';
+    iframe.src = media.embedUrl || media.url;
+    
+    // Set appropriate permissions based on media type
+    if (media.platform === 'youtube' || media.platform === 'odysee') {
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+        iframe.sandbox = 'allow-scripts allow-same-origin allow-presentation allow-forms';
+    }
+    
+    // Clear container and add iframe
+    container.innerHTML = '';
+    container.appendChild(iframe);
+}
+
+// Smart image display with format selection (MP4 vs GIF)
+async function displaySmartImage(media, container) {
+    const supportsMP4 = canPlayMP4();
+    const preferredFormat = supportsMP4 ? 'mp4' : 'gif';
+    
+    // Determine optimal URL
+    let mediaUrl;
+    if (media.formatOptions && media.selectedFormat) {
+        mediaUrl = media.selectedFormat.url;
+    } else if (media.imgurId) {
+        // Smart Imgur URL selection
+        mediaUrl = `https://i.imgur.com/${media.imgurId}.${preferredFormat}`;
+    } else {
+        mediaUrl = media.url || media.directUrl;
+    }
+    
+    if (supportsMP4 && preferredFormat === 'mp4') {
+        // Use HTML5 video for MP4
+        displayAsVideo(mediaUrl, container, media);
+    } else {
+        // Use image tag for GIF
+        displayAsImage(mediaUrl, container, media);
+    }
+}
+
+// Display as HTML5 video with auto-loop
+function displayAsVideo(videoUrl, container, media) {
+    const video = document.createElement('video');
+    video.src = videoUrl;
+    video.autoplay = true;
+    video.loop = true;
+    video.muted = true; // Required for autoplay in most browsers
+    video.controls = false;
+    video.style.width = '100%';
+    video.style.height = 'auto';
+    video.style.borderRadius = '8px';
+    
+    // Add error handling
+    video.onerror = () => {
+        console.log('Video failed to load, falling back to GIF');
+        const gifUrl = videoUrl.replace('.mp4', '.gif');
+        displayAsImage(gifUrl, container, media);
+    };
+    
+    container.innerHTML = '';
+    container.appendChild(video);
+}
+
+// Display as image (GIF)
+function displayAsImage(imageUrl, container, media) {
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.alt = media.title || 'Funny image';
+    img.style.width = '100%';
+    img.style.height = 'auto';
+    img.style.borderRadius = '8px';
+    
+    // Add error handling
+    img.onerror = () => {
+        console.log('Image failed to load, showing fallback');
+        showFallbackContent(container);
+    };
+    
+    container.innerHTML = '';
+    container.appendChild(img);
+}
+
+// Check if browser can play MP4 videos
+function canPlayMP4() {
+    const video = document.createElement('video');
+    return video.canPlayType && video.canPlayType('video/mp4') !== '';
+}
+
+// Determine display method from media object
+function getDisplayMethodFromMedia(media) {
+    if (media.type === 'imgur-album' || media.embedHtml) {
+        return 'embed-html';
+    } else if (media.platform === 'youtube' || media.platform === 'odysee' || media.type === 'giphy') {
+        return 'iframe';
+    } else if (media.imgurId || (media.formatOptions && media.formatOptions.length > 1)) {
+        return 'smart-image';
+    } else {
+        return 'iframe';
+    }
+}
+
+// Load Imgur embed script if needed
+function loadImgurEmbedScript() {
+    // Check if script is already loaded
+    if (document.querySelector('script[src*="imgur.com/min/embed.js"]')) {
+        return;
+    }
+    
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = '//s.imgur.com/min/embed.js';
+    script.charset = 'utf-8';
+    document.head.appendChild(script);
+}
+
+// Handle platform-specific promotions
+function handlePlatformPromotions(media, odyseePromotion) {
+    if (odyseePromotion) {
+        if (media.showChannelPromotion && media.platform === 'odysee') {
+            odyseePromotion.style.display = 'block';
+        } else {
+            odyseePromotion.style.display = 'none';
+        }
+    }
+}
+
+// Show fallback content
+function showFallbackContent(container) {
+    container.innerHTML = '<div style="text-align: center; padding: 40px; background: #f5f5f5; border-radius: 8px;"><p>😢 Media temporarily unavailable</p><p><small>Please try again later</small></p></div>';
+}
+
+// Show error content
+function showErrorContent(container) {
+    container.innerHTML = '<div style="text-align: center; padding: 40px; background: #f5f5f5; border-radius: 8px;"><p>📡 Connection error</p><p><small>Please check your internet connection</small></p></div>';
+}
+

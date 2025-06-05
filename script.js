@@ -362,9 +362,14 @@ class ROFLFaucet {
         
         // Update claim button
         const claimBtn = document.getElementById('claim-btn');
-        if (claimBtn) {
+        const btnText = claimBtn?.querySelector('.btn-text');
+        if (claimBtn && btnText) {
             claimBtn.disabled = !this.userStats.canClaim;
-            claimBtn.textContent = this.userStats.canClaim ? '🎲 Claim UselessCoins!' : 'Cooldown Active';
+            if (this.userStats.canClaim) {
+                btnText.textContent = '🎲 Claim 5 UselessCoins!';
+            } else {
+                btnText.textContent = 'Cooldown Active';
+            }
         }
     }
 
@@ -544,48 +549,201 @@ function rotateAds() {
 
 // Rotate ads on page load and every 30 seconds
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOMContentLoaded - starting initialization...');
+    
     rotateAds();
     setInterval(rotateAds, 30000); // Rotate every 30 seconds
     
     // Load initial video on page load
     loadNewVideo();
     
-    // Load sidebar media content
-    loadSidebarMedia();
+    // Wait a bit for DOM to be fully ready, then load sidebar media
+    setTimeout(() => {
+        console.log('⏰ Timeout reached, loading sidebar media...');
+        loadSidebarMedia();
+    }, 2000); // Wait 2 seconds
     
-    // Rotate sidebar media every 45 seconds (different timing from ads)
-    setInterval(loadSidebarMedia, 45000);
+    // Media content loads once per page load - no auto-refresh needed
+    // Different content will appear on each page refresh
 });
 
-// Load media content for sidebar ad spaces
-async function loadSidebarMedia() {
-    const sidebarSlots = document.querySelectorAll('.rotating-ad[data-ad-slot]');
+// Load media content for specific sidebar slots
+function loadSidebarMedia() {
+    console.log('🎭 loadSidebarMedia() called - starting Giphy load...');
     
-    sidebarSlots.forEach(async (slot, index) => {
-        // Every few rotations, show Imgur content instead of placeholder ads
-        if (Math.random() < 0.3) { // 30% chance of showing Imgur content
+    // Load Giphy content into its dedicated slot
+    console.log('🌐 Fetching /api/image/random...');
+    fetch('/api/image/random')
+    .then(response => response.json())
+    .then(data => {
+        console.log('✅ Giphy API response:', data);
+        const giphyContent = document.getElementById('giphy-content');
+        if (!giphyContent) {
+            console.error('❌ giphy-content element not found!');
+            return;
+        }
+        
+        if (data.embedUrl) {
+            // Fix HTML entity encoding in embed URL
+            const cleanUrl = data.embedUrl.replace(/&amp;/g, '&');
+            console.log('🎭 Creating Giphy iframe with URL:', cleanUrl);
+            // Create iframe with proper styling for Giphy embeds
+            const iframe = document.createElement('iframe');
+            iframe.src = cleanUrl;
+            iframe.width = '100%';
+            iframe.height = '250';
+            iframe.frameBorder = '0';
+            iframe.className = 'giphy-embed';
+            iframe.allowFullscreen = true;
+            
+            // Clear and insert iframe
+            giphyContent.innerHTML = '';
+            giphyContent.appendChild(iframe);
+            
+            console.log('✅ Giphy iframe inserted successfully!');
+        } else {
+            console.error('❌ No embedUrl in Giphy response');
+            giphyContent.innerHTML = 'Failed to load Giphy content.';
+        }
+    })
+    .catch(error => {
+        console.error('Error loading Giphy content:', error);
+        const giphyContent = document.getElementById('giphy-content');
+        giphyContent.innerHTML = 'Error loading Giphy content. Please try again later.';
+    });
+
+    // Load Imgur content into its dedicated slot
+    fetch('/api/media/random')
+    .then(response => response.json())
+    .then(data => {
+        const imgurContent = document.getElementById('imgur-content');
+        if (data.embedHtml) {
+            imgurContent.innerHTML = data.embedHtml;
+            
+            // Execute any scripts in the embed HTML
+            const scripts = imgurContent.getElementsByTagName('script');
+            for (let i = 0; i < scripts.length; i++) {
+                const script = scripts[i];
+                const newScript = document.createElement('script');
+                if (script.src) {
+                    newScript.src = script.src;
+                } else {
+                    newScript.textContent = script.textContent;
+                }
+                newScript.async = script.async;
+                document.head.appendChild(newScript);
+            }
+        } else {
+            imgurContent.innerHTML = 'Failed to load Imgur content.';
+        }
+    })
+    .catch(error => {
+        console.error('Error loading Imgur content:', error);
+        const imgurContent = document.getElementById('imgur-content');
+        imgurContent.innerHTML = 'Error loading Imgur content. Please try again later.';
+    });
+}
+
+// Load Giphy content (function no longer needed)
+function loadGiphyContent() {
+    const giphySlots = document.querySelectorAll('.rotating-ad[data-ad-slot="1"]'); // Single Giphy slot
+    
+    giphySlots.forEach(async (slot, index) => {
+        if (Math.random() < 0.4) { // 40% chance for Giphy content
             try {
-                const response = await fetch('/api/media/random');
+                const response = await fetch('/api/image/random');
                 const media = await response.json();
                 
-                if (response.ok && media && media.type === 'imgur-album') {
-                    // Replace the ad slot with Imgur content
+                if (response.ok && media && media.embedUrl) {
                     const container = slot.parentElement;
                     const adContent = container.querySelector('.ad-content');
                     
                     if (adContent) {
-                        // Create a container for the Imgur embed
+                        // Create Giphy container
                         const mediaContainer = document.createElement('div');
-                        mediaContainer.className = 'sidebar-media-container';
+                        mediaContainer.className = 'sidebar-media-container giphy-content';
                         mediaContainer.style.cssText = `
                             width: 100%;
                             height: auto;
                             border-radius: 8px;
                             overflow: hidden;
                             background: #f8f9fa;
+                            border: 2px solid #00D924; /* Giphy green */
                         `;
                         
-                        // Add the Imgur embed HTML
+                        // Add Giphy iframe
+                        const iframe = document.createElement('iframe');
+                        iframe.src = media.embedUrl;
+                        iframe.width = '100%';
+                        iframe.height = '250';
+                        iframe.frameBorder = '0';
+                        iframe.allowFullscreen = true;
+                        mediaContainer.appendChild(iframe);
+                        
+                        // Replace ad content temporarily
+                        const originalContent = adContent.innerHTML;
+                        adContent.innerHTML = '';
+                        adContent.appendChild(mediaContainer);
+                        
+                        // Update header to show Giphy
+                        const adHeader = container.querySelector('.ad-label');
+                        const originalLabel = adHeader ? adHeader.textContent : '';
+                        if (adHeader) {
+                            adHeader.textContent = '🎭 Giphy Content';
+                            adHeader.style.background = '#00D924';
+                            adHeader.style.color = 'white';
+                        }
+                        
+                        console.log('✅ Loaded Giphy content:', media.title);
+                        
+                        // Restore after 35 seconds
+                        setTimeout(() => {
+                            if (adContent) {
+                                adContent.innerHTML = originalContent;
+                            }
+                            if (adHeader) {
+                                adHeader.textContent = originalLabel;
+                                adHeader.style.background = '';
+                                adHeader.style.color = '';
+                            }
+                        }, 35000);
+                    }
+                }
+            } catch (error) {
+                console.log('❌ Giphy load error:', error.message);
+            }
+        }
+    });
+}
+
+// Load Imgur content for specific slot (one per provider for TOS compliance)
+async function loadImgurContent() {
+    const imgurSlots = document.querySelectorAll('.rotating-ad[data-ad-slot="2"]'); // Single Imgur slot
+    
+    imgurSlots.forEach(async (slot, index) => {
+        if (Math.random() < 0.4) { // 40% chance for Imgur content
+            try {
+                const response = await fetch('/api/media/random');
+                const media = await response.json();
+                
+                if (response.ok && media && media.type === 'imgur-album') {
+                    const container = slot.parentElement;
+                    const adContent = container.querySelector('.ad-content');
+                    
+                    if (adContent) {
+                        // Create Imgur container
+                        const mediaContainer = document.createElement('div');
+                        mediaContainer.className = 'sidebar-media-container imgur-content';
+                        mediaContainer.style.cssText = `
+                            width: 100%;
+                            height: auto;
+                            border-radius: 8px;
+                            overflow: hidden;
+                            background: #f8f9fa;
+                            border: 2px solid #1BB76E; /* Imgur green */
+                        `;
+                        
+                        // Add Imgur embed
                         mediaContainer.innerHTML = media.embedHtml;
                         
                         // Replace ad content temporarily
@@ -594,31 +752,36 @@ async function loadSidebarMedia() {
                         adContent.appendChild(mediaContainer);
                         
                         // Load Imgur script if needed
-                        if (media.embedHtml.includes('embed.js')) {
+                        if (media.embedHtml && media.embedHtml.includes('embed.js')) {
                             loadImgurEmbedScript();
                         }
                         
-                        // Update the ad header to show it's content
+                        // Update header to show Imgur
                         const adHeader = container.querySelector('.ad-label');
                         const originalLabel = adHeader ? adHeader.textContent : '';
                         if (adHeader) {
-                            adHeader.textContent = 'Featured Content';
+                            adHeader.textContent = '🖼️ Imgur Content';
+                            adHeader.style.background = '#1BB76E';
+                            adHeader.style.color = 'white';
                         }
                         
-                        // Restore original ad after 30 seconds
+                        console.log('✅ Loaded Imgur content:', media.title);
+                        
+                        // Restore after 35 seconds
                         setTimeout(() => {
                             if (adContent) {
                                 adContent.innerHTML = originalContent;
                             }
                             if (adHeader) {
                                 adHeader.textContent = originalLabel;
+                                adHeader.style.background = '';
+                                adHeader.style.color = '';
                             }
-                        }, 30000); // Show for 30 seconds
+                        }, 35000);
                     }
                 }
             } catch (error) {
-                console.log('Could not load sidebar media:', error.message);
-                // Continue with normal ad rotation
+                console.log('❌ Imgur load error:', error.message);
             }
         }
     });
@@ -635,35 +798,28 @@ async function loadNewVideo() {
     }
     
     try {
-        console.log('Loading new media...');
+        console.log('Loading new YouTube video...');
         
         // Show loading state
         mediaContainer.style.opacity = '0.5';
         
-        // Try enhanced media API first, fallback to video API
-        let response, media;
-        try {
-            response = await fetch('/api/media/random');
-            media = await response.json();
-        } catch (mediaError) {
-            console.log('Enhanced media API not available, falling back to video API');
-            response = await fetch('/api/video/random');
-            media = await response.json();
-        }
+        // Use YouTube video API for main content area
+        const response = await fetch('/api/video/random');
+        const media = await response.json();
         
         if (response.ok && media) {
-            console.log('Loaded media:', media.title, '(Type:', media.type || 'video', ')');
+            console.log('Loaded YouTube video:', media.title);
             
-            // Handle different media types with smart format selection
-            await displayMedia(media, mediaContainer);
+            // Display as YouTube iframe (main content area only shows YouTube)
+            displayIframe(media, mediaContainer);
             
-            // Handle platform-specific promotions
+            // Handle YouTube channel promotions
             handlePlatformPromotions(media, odyseePromotion);
             
             // Restore opacity
             mediaContainer.style.opacity = '1';
         } else {
-            console.error('Failed to load media:', media);
+            console.error('Failed to load YouTube video:', media);
             showFallbackContent(mediaContainer);
         }
         
@@ -857,4 +1013,30 @@ function showFallbackContent(container) {
 function showErrorContent(container) {
     container.innerHTML = '<div style="text-align: center; padding: 40px; background: #f5f5f5; border-radius: 8px;"><p>📡 Connection error</p><p><small>Please check your internet connection</small></p></div>';
 }
+
+// Manual test function for browser console debugging
+window.testGiphyLoad = function() {
+    console.log('🧪 Manual Giphy test starting...');
+    const giphyContent = document.getElementById('giphy-content');
+    if (!giphyContent) {
+        console.error('❌ giphy-content element not found!');
+        return;
+    }
+    console.log('✅ giphy-content element found:', giphyContent);
+    
+    fetch('/api/image/random')
+    .then(response => response.json())
+    .then(data => {
+        console.log('🎭 Manual test API response:', data);
+        if (data.embedUrl) {
+            giphyContent.innerHTML = `<iframe src="${data.embedUrl}" width="100%" height="250" frameborder="0" class="giphy-embed" allowfullscreen></iframe>`;
+            console.log('✅ Giphy iframe inserted manually!');
+        } else {
+            console.error('❌ No embedUrl in response');
+        }
+    })
+    .catch(error => {
+        console.error('❌ Manual test error:', error);
+    });
+};
 

@@ -16,10 +16,10 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.hcaptcha.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.hcaptcha.com", "https://s.imgur.com"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:"],
-      frameSrc: ["'self'", "https://www.youtube.com", "https://youtube.com", "https://hcaptcha.com", "https://*.hcaptcha.com", "https://imgur.com", "https://*.imgur.com"],
+      frameSrc: ["'self'", "https://www.youtube.com", "https://youtube.com", "https://hcaptcha.com", "https://*.hcaptcha.com", "https://imgur.com", "https://*.imgur.com", "https://i.imgur.com", "https://s.imgur.com", "https://embed.imgur.com", "https://giphy.com", "https://*.giphy.com", "https://embed.giphy.com"],
       connectSrc: ["'self'", "https://hcaptcha.com", "https://*.hcaptcha.com"]
     }
   },
@@ -191,8 +191,8 @@ app.post('/api/claim', async (req, res) => {
     });
   }
   
-  // Award tokens (random amount between 25-75)
-  const tokensAwarded = Math.floor(Math.random() * 51) + 25;
+  // Award exactly 5 tokens per claim
+  const tokensAwarded = 5;
   
   // Update user
   user.balance += tokensAwarded;

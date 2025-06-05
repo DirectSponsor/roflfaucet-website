@@ -153,9 +153,18 @@ class EnhancedMediaManager {
     
     // Get random media with intelligent format selection
     getRandomMedia() {
+        console.log('🎯 getRandomMedia called');
+        console.log('📊 Cache contents:', {
+            imgur: this.mediaCache.imgur?.length || 0,
+            video: this.mediaCache.video?.length || 0, 
+            giphy: this.mediaCache.giphy?.length || 0
+        });
+        
         const allMedia = [...this.mediaCache.imgur, ...this.mediaCache.video, ...this.mediaCache.giphy];
+        console.log('📝 Total media items:', allMedia.length);
         
         if (allMedia.length === 0) {
+            console.log('❌ No media found, returning fallback');
             return this.getFallbackMedia();
         }
         

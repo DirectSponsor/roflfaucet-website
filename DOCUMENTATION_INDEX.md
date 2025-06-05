@@ -19,6 +19,7 @@
 ### Supporting Files
 - **ACCESS_CHECKLIST.md** - Server access and credentials
 - **DOCUMENTATION_INDEX.md** - This index file
+- **docs/CSP_GUIDE.md** - Content Security Policy configuration for media hosts ✨ NEW
 
 ## 🔄 **WIKI ANALYSIS IMPACT SUMMARY**
 

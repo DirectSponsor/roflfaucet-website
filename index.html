@@ -47,6 +47,16 @@
             <div class="content-grid">
                 <!-- Left Sidebar -->
                 <aside class="sidebar-left">
+                    <!-- Giphy Content Slot - Top Position -->
+                    <div class="media-slot giphy-slot" id="giphy-slot">
+                        <div class="media-header">
+                            <span class="media-label giphy-label">🎭 Giphy Trending</span>
+                        </div>
+                        <div class="media-content" id="giphy-content">
+                            <div class="loading-placeholder">🎬 Media content is being updated<br><br>Please try again soon!</div>
+                        </div>
+                    </div>
+                    
                     <!-- Rotating Ad Space 1 -->
                     <div class="ad-space" id="ad-space-1">
                         <div class="ad-header">
@@ -78,10 +88,6 @@
                     <div class="faucet-card">
                         <div class="faucet-header">
                             <h2>🎉 Claim Your Free Coins!</h2>
-                            <div class="token-display">
-                                <span class="token-amount">0.00001</span>
-                                <span class="token-symbol">Useless Coins</span>
-                            </div>
                         </div>
                         <div class="faucet-content">
                             <!-- Random Video Section -->
@@ -127,7 +133,7 @@
                                 </div>
                                 
                                 <button id="claim-btn" class="claim-button">
-                                    <span class="btn-text">🚀 Claim UselessCoins!</span>
+                                    <span class="btn-text">🎲 Claim 5 UselessCoins!</span>
                                     <span class="btn-loading" style="display: none;">⏳ Processing...</span>
                                 </button>
                                 
@@ -208,7 +214,7 @@
                     <div id="success-message" class="success-message" style="display: none;">
                         <div class="success-content">
                             <h3>🎉 Success! Tokens Claimed!</h3>
-                            <p>You've earned <span id="claimed-amount">0.00001</span> USELESS tokens!</p>
+                            <p>You've earned <span id="claimed-amount">5</span> USELESS tokens!</p>
                             <div class="success-actions">
                                 <button class="btn-secondary" onclick="showCharityPromotion()">💝 See Charity Impact</button>
                                 <button class="btn-secondary" onclick="showAchievements()">🏆 View Achievements</button>
@@ -219,6 +225,16 @@
 
                 <!-- Right Sidebar -->
                 <aside class="sidebar-right">
+                    <!-- Imgur Content Slot - Top Position -->
+                    <div class="media-slot imgur-slot" id="imgur-slot">
+                        <div class="media-header">
+                            <span class="media-label imgur-label">🖼️ Imgur Gallery</span>
+                        </div>
+                        <div class="media-content" id="imgur-content">
+                            <div class="loading-placeholder">🎬 Media content is being updated<br><br>Please try again soon!</div>
+                        </div>
+                    </div>
+                    
                     <!-- Rotating Ad Space 2 -->
                     <div class="ad-space" id="ad-space-2">
                         <div class="ad-header">

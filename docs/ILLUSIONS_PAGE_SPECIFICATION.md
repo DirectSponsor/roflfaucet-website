@@ -35,18 +35,46 @@ The Illusions page addresses a critical need for advertiser verification by prov
         <p>Exploring the fascinating world of visual perception</p>
     </header>
     
-    <!-- Standard sidebar ads (for advertiser verification) -->
+    <!-- Three-column layout with static ad verification -->
     <main class="illusions-layout">
         <aside class="sidebar-left">
-            <!-- Fixed ad placements -->
+            <!-- Dynamic rotating ads (existing system) -->
         </aside>
         
         <section class="illusions-content">
-            <!-- Rotating illusion display -->
+            <!-- Static banner ads for bot verification -->
+            <div class="static-ads-section">
+                <!-- Top banner (728x90 or 970x250) -->
+                <div class="banner-ad-slot" id="banner-top">
+                    <img src="banner-ad-1.jpg" alt="Premium Banner Ad">
+                </div>
+                
+                <!-- Square ads in 2-column grid -->
+                <div class="square-ads-grid">
+                    <div class="square-ad-slot" id="square-ad-1">
+                        <img src="square-ad-1.jpg" alt="Square Ad 1">
+                    </div>
+                    <div class="square-ad-slot" id="square-ad-2">
+                        <img src="square-ad-2.jpg" alt="Square Ad 2">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Illusion gallery below ads -->
+            <div class="illusion-gallery">
+                <!-- Rotating illusion display -->
+            </div>
+            
+            <!-- Bottom banner for additional verification -->
+            <div class="static-ads-section">
+                <div class="banner-ad-slot" id="banner-bottom">
+                    <img src="banner-ad-2.jpg" alt="Bottom Banner Ad">
+                </div>
+            </div>
         </section>
         
         <aside class="sidebar-right">
-            <!-- Fixed ad placements -->
+            <!-- Dynamic rotating ads (existing system) -->
         </aside>
     </main>
 </body>
@@ -93,9 +121,75 @@ const illusions = [
 
 ### **Container Specifications**
 ```css
-.illusions-container {
+/* Main layout structure */
+.illusions-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr 300px;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Center column with static ads and illusions */
+.illusions-content {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+/* Static ad sections */
+.static-ads-section {
     width: 100%;
-    max-width: 800px; /* Prevents oversizing on large monitors */
+    display: flex;
+    justify-content: center;
+}
+
+.banner-ad-slot {
+    max-width: 970px;
+    width: 100%;
+    border: 2px solid #e1e8ed;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.banner-ad-slot img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Square ads in 2-column grid */
+.square-ads-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 620px; /* (300 + 20 + 300) */
+    width: 100%;
+    margin: 0 auto;
+}
+
+.square-ad-slot {
+    width: 300px;
+    height: 250px;
+    border: 2px solid #e1e8ed;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.square-ad-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Illusion gallery container */
+.illusion-gallery {
+    width: 100%;
+    max-width: 800px;
     margin: 0 auto;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
@@ -103,14 +197,47 @@ const illusions = [
 }
 
 .illusion-content {
-    width: 100%; /* Fits container width */
-    height: auto; /* Maintains aspect ratio */
+    width: 100%;
+    height: auto;
     cursor: pointer;
     transition: transform 0.3s ease;
 }
 
 .illusion-content:hover {
     transform: scale(1.02);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .illusions-layout {
+        grid-template-columns: 250px 1fr 250px;
+    }
+    
+    .square-ads-grid {
+        max-width: 520px;
+    }
+    
+    .square-ad-slot {
+        width: 250px;
+        height: 200px;
+    }
+}
+
+@media (max-width: 768px) {
+    .illusions-layout {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .square-ads-grid {
+        grid-template-columns: 1fr;
+        max-width: 300px;
+    }
+    
+    .square-ad-slot {
+        width: 100%;
+        height: 250px;
+    }
 }
 
 /* Floating overlay */
@@ -192,11 +319,24 @@ const illusions = [
 
 ## 🎯 **Advertiser Benefits**
 
-### **Consistent Ad Placement**
-- **Fixed Positions**: Sidebar ads remain in consistent locations
-- **No Rotation**: Advertisers can always find their content
-- **Professional Presentation**: Serious, educational content enhances ad credibility
-- **Quality Traffic**: Engaged users interested in visual content
+### **Static Ad Verification Strategy**
+- **Bot-Friendly Layout**: Static ads in center column ensure network bots can always find content
+- **Multiple Verification Points**: Top banner, square ads, and bottom banner provide multiple discovery opportunities
+- **No Rotation Risk**: Static placement eliminates the risk of ads being "cut" by advertisers
+- **Premium Positioning**: Center column placement commands higher rates than sidebar positions
+- **Professional Presentation**: Educational content enhances advertiser brand association
+
+### **Ad Placement Hierarchy**
+1. **Top Banner (728x90 or 970x250)**: Prime visibility, first thing users see
+2. **Square Ads (300x250 each)**: Side-by-side placement, high engagement zone
+3. **Bottom Banner (970x250)**: Catches users after content engagement
+4. **Sidebar Rotators**: Dynamic content for variety without affecting verification
+
+### **Advertiser Verification Benefits**
+- **Guaranteed Discovery**: Bots can always find ads in fixed center positions
+- **Multiple Formats**: Banner and square options accommodate different advertiser needs
+- **Quality Environment**: Educational illusion content creates premium brand context
+- **Engaged Audience**: Interactive content ensures users spend quality time on page
 
 ### **SEO and Discovery**
 - **Educational Keywords**: "optical illusions", "visual perception", "brain science"
@@ -208,9 +348,11 @@ const illusions = [
 
 ### **Phase 1: Core Structure** (Week 1)
 1. Create static HTML page with Gintoki header
-2. Implement basic CSS layout with sidebar ad spaces
-3. Set up illusion rotator with manual navigation
-4. Add responsive design for mobile devices
+2. Implement three-column layout with static ad zones
+3. Place static banner and square ads in center column
+4. Set up basic illusion rotator with manual navigation
+5. Add responsive design for mobile devices
+6. Ensure static ads are easily discoverable by bots
 
 ### **Phase 2: Interactive Features** (Week 2)
 1. Implement floating overlay system
@@ -279,13 +421,24 @@ const illusions = [
 │           [Serious Gintoki Header]          │
 │        Optical Illusions Gallery            │
 ├─────────┬─────────────────────┬─────────────┤
-│  Ad     │                     │    Ad       │
-│ Space   │   [Current Illusion] │  Space      │
-│ 300x250 │                     │ 300x600     │
+│ Dynamic │    STATIC ADS       │   Dynamic   │
+│ Rotating│  ┌───────────────┐   │  Rotating   │
+│ Ads     │  │ Banner 728x90 │   │   Ads       │
+│ 300x250 │  └───────────────┘   │  300x600    │
+│         │  ┌──────┐ ┌──────┐   │             │
+│ Dynamic │  │Square│ │Square│   │   Dynamic   │
+│ Rotating│  │300x  │ │300x  │   │  Rotating   │
+│ Ads     │  │250   │ │250   │   │   Ads       │
+│ 300x300 │  └──────┘ └──────┘   │  300x250    │
+│         │                     │             │
+│         │   [Current Illusion] │             │
 │         │   Caption Below     │             │
-│  Ad     │                     │    Ad       │
-│ Space   │  [Navigation Dots]  │  Space      │
-│ 300x300 │                     │ 300x250     │
+│         │   [Navigation Dots] │             │
+│         │                     │             │
+│         │  ┌───────────────┐   │             │
+│         │  │Bottom Banner  │   │             │
+│         │  │   970x250     │   │             │
+│         │  └───────────────┘   │             │
 └─────────┴─────────────────────┴─────────────┘
 ```
 

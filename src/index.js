@@ -43,9 +43,15 @@ app.use(express.static(path.join(__dirname, '..'), {
   }
 }));
 
-// In-memory storage for development (will replace with database later)
-const users = new Map();
-const claims = new Map();
+// ⚠️  IMPORTANT: FULL CENTRALIZATION WITH DIRECTSPONSOR OAUTH
+// ⚠️  ALL USER DATA IS STORED IN DIRECTSPONSOR OAUTH
+// ⚠️  ROFLFaucet ONLY HANDLES GAME LOGIC - NO DATA STORAGE
+// ⚠️  All user management and data storage goes through auth.directsponsor.org
+
+// NO LOCAL USER DATA STORAGE
+// All user data (identity, coins, tokens, achievements) stored in DirectSponsor OAuth
+// ROFLFaucet is purely a game interface that reads/writes to OAuth server
+const claims = new Map(); // Only temporary claim timing data (could also be moved to OAuth)
 
 // Initialize content managers
 const videoManager = new AutoVideoManager();
@@ -121,35 +127,61 @@ async function verifyCaptcha(token) {
 
 // API Routes
 
-// Get user info
-app.get('/api/user/:id', (req, res) => {
+// Get user data from DirectSponsor OAuth (FULLY CENTRALIZED)
+// ⚠️  ALL user data comes from DirectSponsor OAuth - no local storage
+// ⚠️  ROFLFaucet is just a game interface to centralized data
+app.get('/api/user/:id', async (req, res) => {
   const userId = req.params.id;
-  const user = users.get(userId);
   
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+  try {
+    // Get complete user data from DirectSponsor OAuth
+    const userResponse = await axios.get(`${OAUTH_CONFIG.directSponsorBaseUrl}/oauth/userinfo`, {
+      headers: {
+        'Authorization': `Bearer ${req.headers.authorization?.substring(7)}` // Remove 'Bearer ' prefix
+      }
+    });
+    
+    const userData = userResponse.data;
+    
+    res.json({
+      userId: userId,
+      username: userData.username || userData.display_name || 'Unknown',
+      email: userData.email,
+      coinBalance: userData.useless_coin_balance || 0, // Multi-site currency
+      tokenBalance: userData.worthless_token_balance || 0, // ROFLFaucet-specific
+      totalClaims: userData.roflfaucet_total_claims || 0,
+      achievements: userData.roflfaucet_achievements || [],
+      lastClaim: claims.get(userId) ? new Date(claims.get(userId)) : null,
+      nextClaimAvailable: getNextClaimTime(userId),
+      canClaim: canClaim(userId),
+      _source: 'DirectSponsor OAuth (fully centralized)'
+    });
+    
+  } catch (error) {
+    console.error('Failed to fetch user data from DirectSponsor:', error.response?.data || error.message);
+    
+    res.status(500).json({
+      error: 'Failed to fetch user data from centralized OAuth server',
+      details: error.response?.data || error.message
+    });
   }
-  
-  res.json({
-    userId: user.id,
-    username: user.username,
-    balance: user.balance,
-    totalClaims: user.totalClaims,
-    lastClaim: claims.get(userId) ? new Date(claims.get(userId)) : null,
-    nextClaimAvailable: getNextClaimTime(userId),
-    canClaim: canClaim(userId)
-  });
 });
+
+// ⚠️  AUTHENTICATION WARNING: 
+// ⚠️  ROFLFaucet does NOT handle user registration/login
+// ⚠️  All authentication is handled by DirectSponsor OAuth at auth.directsponsor.org
+// ⚠️  Users must be created there, not here
 
 // OAuth-only authentication
 // All users are created and managed through DirectSponsor OAuth
+// ROFLFaucet only stores game-specific data (claims, achievements, etc.)
 
-// Claim tokens (works with OAuth users)
+// Claim tokens (FULLY CENTRALIZED - updates DirectSponsor OAuth)
 app.post('/api/claim', async (req, res) => {
-  const { userId, captchaToken } = req.body;
+  const { userId, captchaToken, accessToken } = req.body;
   
-  if (!userId) {
-    return res.status(400).json({ error: 'User ID is required' });
+  if (!userId || !accessToken) {
+    return res.status(400).json({ error: 'User ID and access token are required' });
   }
   
   // Verify captcha
@@ -161,21 +193,6 @@ app.post('/api/claim', async (req, res) => {
     });
   }
   
-  // Check or create OAuth user
-  let user = users.get(userId);
-  if (!user) {
-    // Create a new user on first claim via OAuth
-    user = {
-      id: userId,
-      username: `OAuth_User_${userId.substring(0, 8)}`, // Placeholder, frontend will update
-      balance: 0,
-      totalClaims: 0,
-      createdAt: Date.now()
-    };
-    users.set(userId, user);
-    console.log('Created new OAuth user profile on first claim:', user);
-  }
-  
   if (!canClaim(userId)) {
     const nextClaim = getNextClaimTime(userId);
     return res.status(429).json({ 
@@ -185,53 +202,103 @@ app.post('/api/claim', async (req, res) => {
     });
   }
   
-  // Award exactly 5 tokens per claim
-  const tokensAwarded = 5;
-  
-  // Update user
-  user.balance += tokensAwarded;
-  user.totalClaims += 1;
-  users.set(userId, user);
-  
-  // Record claim time
-  claims.set(userId, Date.now());
-  
-  res.json({
-    success: true,
-    tokensAwarded,
-    newBalance: user.balance,
-    totalClaims: user.totalClaims,
-    nextClaimAvailable: getNextClaimTime(userId),
-    message: `Congratulations! You earned ${tokensAwarded} UselessCoins!`
-  });
+  try {
+    // Award tokens by updating DirectSponsor OAuth user data
+    const tokensAwarded = 5;
+    
+    // Update user data in DirectSponsor OAuth
+    const updateResponse = await axios.post(`${OAUTH_CONFIG.directSponsorBaseUrl}/oauth/update-user`, {
+      worthless_token_balance_increment: tokensAwarded,
+      roflfaucet_total_claims_increment: 1,
+      roflfaucet_last_claim: Date.now()
+    }, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    // Record claim time locally (could also be moved to OAuth)
+    claims.set(userId, Date.now());
+    
+    console.log('✅ Successfully updated user data in DirectSponsor OAuth:', updateResponse.data);
+    
+    res.json({
+      success: true,
+      message: `Congratulations! You earned ${tokensAwarded} WorthlessTokens!`,
+      tokensAwarded: tokensAwarded,
+      newTokenBalance: updateResponse.data.worthless_token_balance,
+      totalClaims: updateResponse.data.roflfaucet_total_claims,
+      userId: userId,
+      nextClaimAvailable: getNextClaimTime(userId),
+      _source: 'Updated in DirectSponsor OAuth (fully centralized)'
+    });
+    
+  } catch (error) {
+    console.error('Failed to update user data in DirectSponsor:', error.response?.data || error.message);
+    
+    res.status(500).json({
+      error: 'Failed to update user data in centralized OAuth server',
+      details: error.response?.data || error.message
+    });
+  }
 });
 
-// Get leaderboard
-app.get('/api/leaderboard', (req, res) => {
-  const topUsers = Array.from(users.values())
-    .sort((a, b) => b.balance - a.balance)
-    .slice(0, 10)
-    .map(user => ({
-      username: user.username,
-      balance: user.balance,
-      totalClaims: user.totalClaims
-    }));
-  
-  res.json({ leaderboard: topUsers });
+// Get leaderboard from DirectSponsor OAuth (FULLY CENTRALIZED)
+app.get('/api/leaderboard', async (req, res) => {
+  try {
+    // Get leaderboard data from DirectSponsor OAuth
+    const leaderboardResponse = await axios.get(`${OAUTH_CONFIG.directSponsorBaseUrl}/oauth/leaderboard/worthless-tokens`, {
+      headers: {
+        'Authorization': `Bearer ${req.headers.authorization?.substring(7)}`
+      }
+    });
+    
+    res.json({
+      leaderboard: leaderboardResponse.data.leaderboard,
+      _source: 'DirectSponsor OAuth (fully centralized)'
+    });
+    
+  } catch (error) {
+    console.error('Failed to fetch leaderboard from DirectSponsor:', error.response?.data || error.message);
+    
+    // Fallback response if centralized leaderboard not available yet
+    res.json({
+      leaderboard: [],
+      error: 'Leaderboard temporarily unavailable',
+      _note: 'DirectSponsor OAuth leaderboard endpoint needs implementation'
+    });
+  }
 });
 
-// Get faucet stats
-app.get('/api/stats', (req, res) => {
-  const totalUsers = users.size;
-  const totalClaims = Array.from(users.values()).reduce((sum, user) => sum + user.totalClaims, 0);
-  const totalTokens = Array.from(users.values()).reduce((sum, user) => sum + user.balance, 0);
-  
-  res.json({
-    totalUsers,
-    totalClaims,
-    totalTokensDistributed: totalTokens,
-    averageBalance: totalUsers > 0 ? Math.round(totalTokens / totalUsers) : 0
-  });
+// Get faucet stats from DirectSponsor OAuth (FULLY CENTRALIZED)
+app.get('/api/stats', async (req, res) => {
+  try {
+    // Get stats from DirectSponsor OAuth
+    const statsResponse = await axios.get(`${OAUTH_CONFIG.directSponsorBaseUrl}/oauth/stats/roflfaucet`, {
+      headers: {
+        'Authorization': `Bearer ${req.headers.authorization?.substring(7)}`
+      }
+    });
+    
+    res.json({
+      ...statsResponse.data,
+      _source: 'DirectSponsor OAuth (fully centralized)'
+    });
+    
+  } catch (error) {
+    console.error('Failed to fetch stats from DirectSponsor:', error.response?.data || error.message);
+    
+    // Fallback stats if centralized stats not available yet
+    res.json({
+      activeGameUsers: 0,
+      totalClaims: 0,
+      totalTokensDistributed: 0,
+      averageBalance: 0,
+      error: 'Stats temporarily unavailable',
+      _note: 'DirectSponsor OAuth stats endpoint needs implementation'
+    });
+  }
 });
 
 // Health check

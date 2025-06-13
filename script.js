@@ -196,29 +196,41 @@ class ROFLFaucet {
         }
     }
 
-    // Load user statistics from API
+    // Load user statistics from centralized OAuth
     async loadUserStats() {
         if (!this.userId) return;
         
         try {
-            const response = await fetch(`${this.apiBase}/api/user/${this.userId}`);
+            // Get access token for centralized data
+            const accessToken = localStorage.getItem('access_token');
+            if (!accessToken) {
+                console.warn('No access token - cannot load centralized user stats');
+                return;
+            }
+            
+            const response = await fetch(`${this.apiBase}/api/user/${this.userId}`, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
             const data = await response.json();
             
             if (response.ok) {
                 this.userStats = {
-                    balance: data.balance,
-                    totalClaims: data.totalClaims,
+                    balance: data.tokenBalance || 0, // WorthlessTokens from centralized OAuth
+                    coinBalance: data.coinBalance || 0, // UselessCoins from centralized OAuth
+                    totalClaims: data.totalClaims || 0,
                     canClaim: data.canClaim,
                     nextClaimTime: data.nextClaimAvailable ? new Date(data.nextClaimAvailable) : null
                 };
                 
                 this.updateUI();
-                console.log('User stats updated:', this.userStats);
+                console.log('✅ Centralized OAuth user stats updated:', this.userStats);
             } else {
-                console.error('Failed to load user stats:', data.error);
+                console.error('Failed to load centralized user stats:', data.error);
             }
         } catch (error) {
-            console.error('Stats loading error:', error);
+            console.error('Centralized stats loading error:', error);
         }
     }
 
@@ -308,6 +320,13 @@ class ROFLFaucet {
                 captchaSubmitBtn.textContent = '⏳ Processing...';
             }
             
+            // Get access token for centralized OAuth operations
+            const accessToken = localStorage.getItem('access_token');
+            if (!accessToken) {
+                this.showMessage('Access token missing - please sign in again', 'error');
+                return;
+            }
+            
             const response = await fetch(`${this.apiBase}/api/claim`, {
                 method: 'POST',
                 headers: {
@@ -315,7 +334,8 @@ class ROFLFaucet {
                 },
                 body: JSON.stringify({ 
                     userId: this.userId,
-                    captchaToken: this.captchaToken
+                    captchaToken: this.captchaToken,
+                    accessToken: accessToken // Pass token for centralized OAuth updates
                 })
             });
             

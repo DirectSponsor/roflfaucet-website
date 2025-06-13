@@ -41,25 +41,32 @@ body {
     position: relative;
 }
 
-/* Beta Indicator */
+/* Beta Indicator - Triangle Corner */
 .beta-indicator {
     position: fixed;
     top: 0;
     left: 0;
     z-index: 1000;
-    background: var(--beta-color);
-    color: white;
-    padding: 8px 12px;
-    font-size: 1rem;
-    font-weight: bold;
-    border-bottom-right-radius: 8px;
-    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 60px 60px 0 0;
+    border-color: var(--beta-color) transparent transparent transparent;
     user-select: none;
 }
 
 .beta-text {
+    position: absolute;
+    top: -45px;
+    left: 8px;
+    color: white;
     font-family: var(--font-primary);
+    font-size: 0.9rem;
+    font-weight: bold;
     letter-spacing: 0.5px;
+    transform: rotate(-45deg);
+    transform-origin: bottom left;
+    white-space: nowrap;
 }
 
 /* Beta title styling */

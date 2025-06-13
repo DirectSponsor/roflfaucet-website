@@ -112,6 +112,7 @@
 3. **Complete Development Setup** - Finish local environment on HP3
 4. **Test Recovery Process** - Ensure backups are restorable
 5. **Set up Monitoring** - Basic health checks and alerts
+6. **Test USB Auto-unmount** - Verify new auto-unmount system for USB drives
 
 ## 📊 PROGRESS TRACKING
 

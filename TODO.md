@@ -1,3 +1,85 @@
+# ROFLFaucet TODO
+
+## High Priority
+
+### 🚨 URGENT - Bitcoin4Ghana Launch Preparation
+- [ ] **Beta Styling Implementation**
+  - Priority: CRITICAL - bitcoin4ghana launching soon
+  - Added: 2025-06-13 (from Andy's notes)
+  - Requirements:
+    - Red triangle at top left with "BETA" text (white text on red background)
+    - Base font size, not too big but visible
+    - Add "(beta)" after "ROFLFaucet" title
+  - Context: Can't waste bitcoin4ghana publicity opportunity without ROFLFaucet ready for signups
+  - Focus: Get core functionality working, perfect implementation can wait
+  - **Git Workflow**: Enhanced deploy script now includes automatic git commits and VPS backups
+  - **Deployment**: Use `./deploy.sh --auto` for automated deployment with git workflow
+
+- [ ] **Deploy media engagement strategy to production**
+  - Status: Ready for deployment
+  - Added: 2025-06-05
+  - Context: Always-visible media slots implemented locally, needs production deployment
+  - Action needed: Run deployment script to push changes live
+
+## Medium Priority
+- [ ] **Remove ROFL background video from YouTube channel**
+  - Status: Pending
+  - Added: 2025-06-05
+  - Context: Background video needs to be removed from @roflfaucet8041 YouTube channel
+  - Action needed: Access YouTube Studio and delete/unlist the background video
+
+## New Features
+- [ ] **Content Positioning System**
+  - Added: 2025-06-09
+  - Weighted content management for sidebars and center column
+
+- [ ] **Cross-Platform Wallet Integration via DirectSponsor OAuth**
+  - Added: 2025-06-11 (From Andy's integration planning notes)
+  - **Prerequisite**: DirectSponsor OAuth fully operational and tested
+  - **Core Feature**: Universal coin/token tracking system across all sites
+  - **User Benefits**:
+    - Balances carry across all platforms (ROFLFaucet, ClickForCharity, DirectSponsor)
+    - Rewards for engagement even on non-game sites (visits, comments, participation)
+    - Automated participation bonuses (separate from native likes/zaps)
+  - **Technical Requirements**:
+    - Integration with DirectSponsor authentication system
+    - Cross-site balance synchronization
+    - Automated reward tracking for various engagement types
+    - Clear separation between native platform rewards and bonus system
+  - **Next Steps**:
+    - Complete DirectSponsor OAuth testing and verification
+    - Design cross-platform wallet API
+    - Plan automated engagement reward system
+    - Implement without confusing users about native vs bonus rewards
+  - **Strategic Value**: Creates unified user experience across entire charity network
+  - Weight (0-100): Controls frequency of appearance relative to other content
+  - Importance (0-100): Controls likelihood to appear high on page
+  - Content types: Ad network ads, self-hosted ads, GIFs, project links, banners
+  - Admin interface: Form-based content management with weight/importance controls
+  - Special values: 100=always show/top, 0=never show/bottom (for temporary disable)
+  - Zones: Left/right sidebars + center column horizontal banners + landscape images
+
+- [ ] **Gaming modal for token depletion**
+  - Added: 2025-06-08
+  - Feature: When tokens run out, show dismissable modal saying "you've gambled away all your tokens"
+  - Options: "Go to faucet" or "Buy more tokens"
+  - Note: Corrected terminology - tokens for gaming, coins for universal currency
+
+- [ ] **Universal Coin System Integration**
+  - Added: 2025-06-08
+  - Background coin earning for page views, engagement, sign-ins
+  - Fractional rewards (0.001 coins) with transient notifications
+  - Simultaneous token + coin earning during gameplay
+  - Cross-platform coin wallet integration
+
+## Low Priority
+
+## Completed
+*(Move completed items here for reference)*
+
+---
+**Last Updated**: 2025-06-08
+
 # ROFLFaucet TODO List
 
 ## 🐛 **Current Issues**
@@ -61,6 +143,13 @@
 ## 🔧 **Planned Improvements**
 
 ### Content System
+- [ ] **PRIORITY: Separate Scripts Per Slot** 🎯
+  - Create dedicated `/api/giphy/random` for LEFT slot
+  - Create dedicated `/api/imgur/random` for RIGHT slot  
+  - Eliminate complex weighted selection logic
+  - Each API tailored to specific platform requirements
+  - Simpler, more reliable, easier to debug
+  - **Benefits**: No cross-platform conflicts, cleaner code, better UX
 - [ ] Add more media providers (TikTok, Instagram, etc.)
 - [ ] Implement content moderation system
 - [ ] Add content rating/voting system
@@ -72,11 +161,26 @@
 - [ ] Add keyboard navigation support
 - [ ] Improve accessibility (ARIA labels, etc.)
 
+### CSS Standards Compliance
+- [ ] Convert existing CSS from px to relative units (rem/em)
+- [ ] Audit all ClickForCharity ecosystem sites for relative units compliance
+- [ ] Update ROFLFaucet styles.css to use rem/em for fonts and spacing
+- [ ] Update ClickForCharity main site CSS to follow new guidelines
+- [ ] Ensure DirectSponsor (when created) follows relative units policy from start
+
+### AI Development Standards Enforcement
+- [ ] Add AI_CONTEXT.md to ClickForCharity main site project
+- [ ] Add AI_CONTEXT.md to any other ecosystem projects
+- [ ] Create AI_CONTEXT.md for DirectSponsor when project starts
+- [ ] Update AI_CONTEXT template if standards change
+
 ### Performance
 - [ ] Optimize image/video loading
 - [ ] Implement lazy loading for sidebar content
 - [ ] Add CDN support for static assets
 - [ ] Database optimization for user data
+- [ ] Review CSS file sizes after relative units conversion
+- [ ] Test performance impact of CSS changes on slow connections
 
 ### Features
 - [ ] Add user profiles and avatars

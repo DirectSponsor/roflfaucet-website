@@ -92,21 +92,12 @@
     },
     {
       "id": "Lcai5B1_gdE",
-      "title": "Cadburys Smash Martians",
+      "title": "Funny Cadbury's Smash Martians Vintage Advert",
       "embedUrl": "https://www.youtube.com/embed/Lcai5B1_gdE?rel=0",
       "description": "YouTube video from @roflfaucet8041",
       "publishedAt": "2017-09-08T14:24:58+00:00",
       "platform": "youtube",
       "thumbnail": "https://img.youtube.com/vi/Lcai5B1_gdE/mqdefault.jpg"
-    },
-    {
-      "id": "bC-0JFTTbS8",
-      "title": "rofl bg",
-      "embedUrl": "https://www.youtube.com/embed/bC-0JFTTbS8?rel=0",
-      "description": "YouTube video from @roflfaucet8041",
-      "publishedAt": "2017-08-20T16:06:49+00:00",
-      "platform": "youtube",
-      "thumbnail": "https://img.youtube.com/vi/bC-0JFTTbS8/mqdefault.jpg"
     },
     {
       "id": "8NZLsK9BX6k",
@@ -127,18 +118,27 @@
       "thumbnail": "https://img.youtube.com/vi/a5DIt-B0RqI/mqdefault.jpg"
     },
     {
-      "id": "_iUj6iOiXF0",
-      "title": "rofl",
-      "embedUrl": "https://www.youtube.com/embed/_iUj6iOiXF0?rel=0",
+      "id": "BhU-wzQD-0o",
+      "title": "Lion hunters get a shock",
+      "embedUrl": "https://www.youtube.com/embed/BhU-wzQD-0o?rel=0",
       "description": "YouTube video from @roflfaucet8041",
-      "publishedAt": "2017-08-10T19:48:32+00:00",
+      "publishedAt": "2017-08-09T21:49:20+00:00",
       "platform": "youtube",
-      "thumbnail": "https://img.youtube.com/vi/_iUj6iOiXF0/mqdefault.jpg"
+      "thumbnail": "https://img.youtube.com/vi/BhU-wzQD-0o/mqdefault.jpg"
+    },
+    {
+      "id": "Ze2vCum6KfE",
+      "title": "kittens scatter",
+      "embedUrl": "https://www.youtube.com/embed/Ze2vCum6KfE?rel=0",
+      "description": "YouTube video from @roflfaucet8041",
+      "publishedAt": "2017-08-09T21:09:44+00:00",
+      "platform": "youtube",
+      "thumbnail": "https://img.youtube.com/vi/Ze2vCum6KfE/mqdefault.jpg"
     }
   ],
   "odysee": [],
   "lastUpdated": {
-    "youtube": "2025-06-05T20:04:59.020Z",
+    "youtube": "2025-06-11T21:51:07.638Z",
     "odysee": null
   }
 }

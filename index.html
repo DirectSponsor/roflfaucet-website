@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROFLFaucet - Hilarious Crypto Faucet Supporting Charity</title>
+    <title>ROFLFaucet (beta) - Hilarious Crypto Faucet Supporting Charity</title>
     <meta name="description" content="Claim free Useless Tokens while voting on charity projects and enjoying the most entertaining crypto faucet experience. Every claim supports real charitable causes!">
     <meta name="keywords" content="crypto faucet, free tokens, charity, voting, useless token, cryptocurrency, blockchain">
     
@@ -23,11 +23,16 @@
     <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
 </head>
 <body>
+    <!-- Beta Indicator -->
+    <div class="beta-indicator">
+        <span class="beta-text">BETA</span>
+    </div>
+    
     <!-- Header -->
     <header class="header">
         <div class="container">
             <div class="logo">
-                <h1>🚰 ROFLFaucet</h1>
+                <h1>🚰 ROFLFaucet <span class="beta-title">(beta)</span></h1>
                 <span class="tagline">Free Crypto + Charity Impact</span>
             </div>
             
@@ -115,15 +120,30 @@
                                 </div>
                             </div>
 
-                            <!-- Signup Section -->
+                            <!-- OAuth Login Section -->
                             <div id="signup-section" class="signup-section">
-                                <div class="username-input">
-                                    <label for="username-input">Choose a Username:</label>
-                                    <input type="text" id="username-input" placeholder="Enter your username (3+ characters)" required>
+                                <div style="text-align: center; padding: 20px;">
+                                    <h3>🚰 Welcome to ROFLFaucet!</h3>
+                                    <p>Connect with your DirectSponsor account to start claiming tokens</p>
+                                    
+                                    <button id="signup-btn" class="signup-button">
+                                        <span>🔐 Sign in with DirectSponsor</span>
+                                    </button>
+                                    
+                                    <p style="margin: 15px 0 5px 0; color: #666; font-size: 0.9rem;">
+                                        Don't have a DirectSponsor account?
+                                    </p>
+                                    <p style="margin: 0; font-size: 0.85rem;">
+                                        <strong>No problem!</strong> You can create one during the sign-in process.
+                                    </p>
+                                    
+                                    <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #4A90E2;">
+                                        <p style="margin: 0; font-size: 0.8rem; color: #555;">
+                                            <strong>📱 One Account, Multiple Sites:</strong><br>
+                                            Your DirectSponsor account works across our entire ecosystem - ROFLFaucet, ClickForCharity, and more!
+                                        </p>
+                                    </div>
                                 </div>
-                                <button id="signup-btn" class="signup-button">
-                                    <span>🎮 Join the Faucet!</span>
-                                </button>
                             </div>
                             
                             <!-- User Section -->
@@ -133,7 +153,7 @@
                                 </div>
                                 
                                 <button id="claim-btn" class="claim-button">
-                                    <span class="btn-text">🎲 Claim 5 UselessCoins!</span>
+                                    <span class="btn-text">🎲 Claim 5 WorthlessTokens!</span>
                                     <span class="btn-loading" style="display: none;">⏳ Processing...</span>
                                 </button>
                                 
@@ -158,7 +178,7 @@
                                         <!-- Fallback test button for development -->
                                         <div id="captcha-fallback" style="display: none; text-align: center; margin: 20px 0;">
                                             <p style="color: #666; font-size: 0.9em;">hCaptcha widget not loading - using test mode:</p>
-                                            <button onclick="simulateCaptchaSuccess()" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">✅ Simulate Captcha Success (Test Mode)</button>
+                                            <button id="simulate-captcha-btn" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">✅ Simulate Captcha Success (Test Mode)</button>
                                         </div>
                                         
                                         <p class="captcha-help">
@@ -216,8 +236,8 @@
                             <h3>🎉 Success! Tokens Claimed!</h3>
                             <p>You've earned <span id="claimed-amount">5</span> USELESS tokens!</p>
                             <div class="success-actions">
-                                <button class="btn-secondary" onclick="showCharityPromotion()">💝 See Charity Impact</button>
-                                <button class="btn-secondary" onclick="showAchievements()">🏆 View Achievements</button>
+                                <button class="btn-secondary" id="charity-impact-btn">💝 See Charity Impact</button>
+                                <button class="btn-secondary" id="achievements-btn">🏆 View Achievements</button>
                             </div>
                         </div>
                     </div>
@@ -577,6 +597,7 @@
     </footer>
 
     <!-- Scripts -->
+    <script src="oauth-client.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

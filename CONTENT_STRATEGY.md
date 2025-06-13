@@ -75,6 +75,13 @@ class ContentManager {
 
 ### Content Categories
 
+#### **Deep Humor Examples**
+- "If billions of neurons can make a consciousness, maybe billions of morons will make a superconsciousness"
+- "Maybe we already have, how would we know?"
+- Perfect blend of humor and philosophical insight
+- Makes people laugh, then think
+- Connects to broader themes about collective consciousness and human potential
+
 #### **Success/Celebration Content**
 - Use when user successfully claims tokens
 - Happy, celebratory GIFs and images

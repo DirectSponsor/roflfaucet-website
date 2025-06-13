@@ -196,7 +196,7 @@ POST /api/admin/settings
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
+See [DEVELOPMENT_STANDARDS.md](DEVELOPMENT_STANDARDS.md) for development guidelines.
 
 ## License
 

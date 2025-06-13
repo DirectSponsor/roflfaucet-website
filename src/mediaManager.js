@@ -155,9 +155,9 @@ class EnhancedMediaManager {
     getRandomMedia() {
         console.log('🎯 getRandomMedia called');
         console.log('📊 Cache contents:', {
-            imgur: this.mediaCache.imgur?.length || 0,
-            video: this.mediaCache.video?.length || 0, 
-            giphy: this.mediaCache.giphy?.length || 0
+            imgur: (this.mediaCache.imgur && this.mediaCache.imgur.length) || 0,
+            video: (this.mediaCache.video && this.mediaCache.video.length) || 0, 
+            giphy: (this.mediaCache.giphy && this.mediaCache.giphy.length) || 0
         });
         
         const allMedia = [...this.mediaCache.imgur, ...this.mediaCache.video, ...this.mediaCache.giphy];
@@ -174,13 +174,13 @@ class EnhancedMediaManager {
         
         let currentWeight = 0;
         
-        // Select media type based on weights
-        if (random < (currentWeight += this.mediaConfig.imgur.weight) && this.mediaCache.imgur.length > 0) {
-            // Imgur media
+        // PRIORITY: Always show Imgur content when available (for launch)
+        if (this.mediaCache.imgur.length > 0) {
+            console.log('✅ Imgur content available, showing it!');
             const imgurMedia = this.mediaCache.imgur;
             const randomIndex = Math.floor(Math.random() * imgurMedia.length);
             return this.enhanceMediaObject(imgurMedia[randomIndex]);
-        } else if (random < (currentWeight += this.mediaConfig.video.weight) && this.mediaCache.video.length > 0) {
+        } else if (this.mediaCache.video.length > 0) {
             // Video media (existing system)
             const videoMedia = this.mediaCache.video;
             const randomIndex = Math.floor(Math.random() * videoMedia.length);

@@ -5,6 +5,8 @@
 ## 📋 **CORE DOCUMENTATION** (Wiki-Enhanced)
 
 ### Strategic Documents
+- **PHILOSOPHY.md** - Core principles and philosophical foundation ✨ NEW
+- **NOSTR_ECOSYSTEM_ARCHITECTURE.md** - Nostr integration & ecosystem-wide gamification design ✨ NEW
 - **WIKI_PAGE_ANALYSIS.md** - Analysis of nimno.net/sites/roflfaucet/ content ✨ NEW
 - **COMPLETE_PROJECT_REFERENCE.md** - Master reference (updated with wiki insights)
 - **README.md** - Project overview (enhanced with 2025 philosophy)
@@ -12,6 +14,7 @@
 
 ### Implementation Guides
 - **CONTENT_STRATEGY.md** - Humor integration strategy (simplified based on wiki)
+- **LIVE_STATS_SYSTEM.md** - Platform statistics and estimation system ✨ NEW
 - **DEPLOYMENT.md** - Server deployment procedures
 - **BACKUP_STRATEGY.md** - Automated backup planning
 - **INFRASTRUCTURE_SETUP.md** - Server infrastructure details
@@ -124,7 +127,8 @@ DEPLOYMENT.md (technical execution)
 - **Content Assets** - /home/andy/Documents/websites/rofl/ directory
 
 ### Integration Points
-- **Main Platform** - clickforcharity.net ecosystem
+- **Main Platform** - [ClickForCharity.net](https://clickforcharity.net/) ecosystem
+- **Direct Sponsor** - [DirectSponsor.org](https://directsponsor.org/) (coming soon)
 - **Useless Token System** - Gamification integration
 - **YouTube Channel** - Traffic generation strategy
 - **Charity Voting** - Democratic revenue allocation

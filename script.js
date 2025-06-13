@@ -4,8 +4,8 @@ console.log('ROFLFaucet script loading...');
 class ROFLFaucet {
     constructor() {
         this.apiBase = window.location.origin;
-        this.userId = localStorage.getItem('roflfaucet_userId');
-        this.username = localStorage.getItem('roflfaucet_username');
+        this.userId = null;
+        this.username = null;
         this.userStats = {
             balance: 0,
             totalClaims: 0,
@@ -47,8 +47,14 @@ class ROFLFaucet {
         // Claim button
         const claimBtn = document.getElementById('claim-btn');
         if (claimBtn) {
-            claimBtn.addEventListener('click', () => this.handleClaim());
+            claimBtn.addEventListener('click', (event) => {
+                console.log('🎲 Claim button clicked!');
+                event.preventDefault();
+                this.handleClaim();
+            });
             console.log('Claim button found and connected');
+        } else {
+            console.warn('❌ Claim button not found during setup');
         }
         
         // Refresh stats button
@@ -58,74 +64,93 @@ class ROFLFaucet {
         }
     }
 
-    // Check if user has existing session
+    // Check if user has existing session (OAuth only)
     async checkUserSession() {
         console.log('Checking user session...');
-        if (this.userId && this.username) {
-            console.log('Found existing user:', this.username);
-            await this.loadUserStats();
-            this.showUserInterface();
+        
+        // Wait for OAuth client to be ready and check authentication
+        if (window.directSponsorAuth) {
+            try {
+                const isAuthenticated = await window.directSponsorAuth.isAuthenticated();
+                if (isAuthenticated) {
+                    console.log('User is authenticated via OAuth, loading profile...');
+                    await this.loadOAuthUserProfile();
+                    this.showUserInterface();
+                    return;
+                } else {
+                    console.log('User is not authenticated or tokens expired');
+                }
+            } catch (error) {
+                console.error('OAuth authentication check failed:', error);
+            }
         } else {
-            console.log('No existing user, showing signup');
-            this.showSignupInterface();
+            console.log('OAuth client not ready yet, will be handled by OAuth client init');
+            return; // Let OAuth client handle the UI
         }
+        
+        // Not authenticated, show sign-in interface
+        console.log('Showing sign-in interface');
+        this.showSignupInterface();
     }
 
-    // Handle user signup
-    async handleSignup() {
-        const usernameInput = document.getElementById('username-input');
-        const username = usernameInput?.value?.trim();
-        
-        console.log('Attempting signup with username:', username);
-        
-        if (!username) {
-            this.showMessage('Please enter a username', 'error');
-            return;
-        }
-        
-        if (username.length < 3) {
-            this.showMessage('Username must be at least 3 characters', 'error');
-            return;
+    // Load OAuth user profile from DirectSponsor
+    async loadOAuthUserProfile() {
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken) {
+            throw new Error('No access token available');
         }
         
         try {
-            const response = await fetch(`${this.apiBase}/api/user/create`, {
-                method: 'POST',
+            const response = await fetch(`${this.apiBase}/api/oauth/userinfo`, {
                 headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ username })
+                    'Authorization': `Bearer ${accessToken}`
+                }
             });
             
-            const data = await response.json();
-            console.log('Signup response:', data);
-            
             if (response.ok) {
-                this.userId = data.userId;
-                this.username = data.username;
+                const userData = await response.json();
+                console.log('OAuth user profile loaded:', userData);
                 
-                // Save to localStorage
-                localStorage.setItem('roflfaucet_userId', this.userId);
-                localStorage.setItem('roflfaucet_username', this.username);
+                // Set user data from OAuth profile - handle different possible field names
+                this.userId = userData.id || userData.user_id || userData.uid;
+                this.username = userData.username || userData.display_name || userData.name;
                 
+                console.log('Setting userId to:', this.userId);
+                console.log('Setting username to:', this.username);
+                
+                if (!this.userId) {
+                    console.error('No user ID found in OAuth profile:', userData);
+                    throw new Error('Invalid user profile - missing ID');
+                }
+                
+                // Initialize user stats (OAuth users start fresh)
                 this.userStats = {
-                    balance: data.balance,
-                    totalClaims: data.totalClaims,
-                    canClaim: data.canClaim,
+                    balance: userData.useless_coin_balance || 0,
+                    totalClaims: 0,
+                    canClaim: true,
                     nextClaimTime: null
                 };
                 
-                this.showUserInterface();
-                this.showMessage(`Welcome, ${this.username}! You can claim your first tokens now.`, 'success');
-                
-                // Update global stats
-                this.loadGlobalStats();
+                this.updateUI();
+                console.log('OAuth user authenticated - userId:', this.userId, 'username:', this.username);
             } else {
-                this.showMessage(data.error || 'Failed to create user', 'error');
+                throw new Error('Failed to load user profile');
             }
         } catch (error) {
-            console.error('Signup error:', error);
-            this.showMessage('Connection error. Please try again.', 'error');
+            console.error('OAuth profile load error:', error);
+            throw error;
+        }
+    }
+
+    // Handle user signup (OAuth only - redirects to DirectSponsor)
+    async handleSignup() {
+        console.log('Signup requested - redirecting to OAuth...');
+        
+        // Use DirectSponsor OAuth for authentication
+        if (window.loginWithDirectSponsor) {
+            window.loginWithDirectSponsor();
+        } else {
+            this.showMessage('OAuth system not ready. Please refresh the page.', 'error');
         }
     }
 
@@ -157,7 +182,11 @@ class ROFLFaucet {
 
     // Handle token claim - now shows captcha first
     async handleClaim() {
+        console.log('handleClaim() called - userId:', this.userId, 'username:', this.username);
+        console.log('Current userStats:', this.userStats);
+        
         if (!this.userId) {
+            console.error('No userId found - cannot proceed with claim');
             this.showMessage('Please sign up first!', 'error');
             return;
         }
@@ -366,7 +395,7 @@ class ROFLFaucet {
         if (claimBtn && btnText) {
             claimBtn.disabled = !this.userStats.canClaim;
             if (this.userStats.canClaim) {
-                btnText.textContent = '🎲 Claim 5 UselessCoins!';
+                btnText.textContent = '🎲 Claim 5 WorthlessTokens!';
             } else {
                 btnText.textContent = 'Cooldown Active';
             }
@@ -458,15 +487,20 @@ class ROFLFaucet {
     }
 }
 
-// Initialize the faucet when page loads
+// Initialize the faucet when page loads - delay to let OAuth client initialize first
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing ROFLFaucet...');
-    try {
-        window.roflfaucet = new ROFLFaucet();
-        console.log('ROFLFaucet initialized successfully!');
-    } catch (error) {
-        console.error('Failed to initialize ROFLFaucet:', error);
-    }
+    console.log('DOM loaded, waiting for OAuth client to initialize...');
+    
+    // Wait a bit for OAuth client to initialize and check authentication
+    setTimeout(() => {
+        console.log('Initializing ROFLFaucet...');
+        try {
+            window.roflfaucet = new ROFLFaucet();
+            console.log('ROFLFaucet initialized successfully!');
+        } catch (error) {
+            console.error('Failed to initialize ROFLFaucet:', error);
+        }
+    }, 500); // 500ms delay
 });
 
 // Global hCaptcha callback functions
@@ -549,7 +583,35 @@ function rotateAds() {
 
 // Rotate ads on page load and every 30 seconds
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 DOMContentLoaded - starting initialization...');
+    console.log('🎨 Setting up additional UI functionality...');
+    
+    // Add event listeners for buttons that had onclick handlers removed due to CSP
+    const simulateCaptchaBtn = document.getElementById('simulate-captcha-btn');
+    if (simulateCaptchaBtn) {
+        simulateCaptchaBtn.addEventListener('click', function() {
+            if (window.simulateCaptchaSuccess) {
+                window.simulateCaptchaSuccess();
+            }
+        });
+    }
+    
+    const charityImpactBtn = document.getElementById('charity-impact-btn');
+    if (charityImpactBtn) {
+        charityImpactBtn.addEventListener('click', function() {
+            if (window.showCharityPromotion) {
+                window.showCharityPromotion();
+            }
+        });
+    }
+    
+    const achievementsBtn = document.getElementById('achievements-btn');
+    if (achievementsBtn) {
+        achievementsBtn.addEventListener('click', function() {
+            if (window.showAchievements) {
+                window.showAchievements();
+            }
+        });
+    }
     
     rotateAds();
     setInterval(rotateAds, 30000); // Rotate every 30 seconds

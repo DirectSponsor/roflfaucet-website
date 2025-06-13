@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROFLFaucet - Processing Sign In</title>
+    <link rel="stylesheet" href="https://roflfaucet.com/styles.css">
+</head>
+<body>
+    <main class="main">
+        <div class="container">
+            <div class="faucet-card" style="text-align: center; max-width: 600px; margin: 2rem auto;">
+                <h2>🔐 Processing Sign In...</h2>
+                <p>Please wait while we complete your authentication with DirectSponsor.</p>
+                <div id="callback-status">Initializing...</div>
+                <div id="message-display" class="message-display" style="display: none;"></div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Only OAuth client - NO hCaptcha to avoid conflicts -->
+    <script src="https://roflfaucet.com/oauth-client.js"></script>
+    <script>
+        // Simple status updates for callback page
+        document.addEventListener('DOMContentLoaded', function() {
+            const status = document.getElementById('callback-status');
+            status.textContent = 'Processing authentication...';
+            
+            // Give OAuth client time to process
+            setTimeout(() => {
+                if (localStorage.getItem('access_token')) {
+                    status.innerHTML = '✅ Authentication successful!<br>Redirecting to main page...';
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    status.innerHTML = '❌ Authentication failed.<br><a href="/">Return to main page</a>';
+                }
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
+

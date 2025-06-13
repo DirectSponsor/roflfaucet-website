@@ -620,10 +620,14 @@ document.addEventListener('DOMContentLoaded', function() {
     loadNewVideo();
     
     // Wait a bit for DOM to be fully ready, then load sidebar media
+    // TEMPORARILY DISABLED FOR TESTING - uncomment when ready
+    /*
     setTimeout(() => {
         console.log('⏰ Timeout reached, loading sidebar media...');
         loadSidebarMedia();
     }, 2000); // Wait 2 seconds
+    */
+    console.log('📋 Sidebar media loading temporarily disabled for testing');
     
     // Media content loads once per page load - no auto-refresh needed
     // Different content will appear on each page refresh

@@ -29,6 +29,16 @@ class ROFLFaucet {
     setupEventListeners() {
         console.log('Setting up event listeners...');
         
+        // Set up tab switching
+        this.setupTabSwitching();
+        
+        // Login button
+        const loginBtn = document.getElementById('login-btn');
+        if (loginBtn) {
+            loginBtn.addEventListener('click', () => this.handleSignup());
+            console.log('Login button found and connected');
+        }
+        
         // Signup button
         const signupBtn = document.getElementById('signup-btn');
         if (signupBtn) {
@@ -62,6 +72,38 @@ class ROFLFaucet {
         if (refreshBtn) {
             refreshBtn.addEventListener('click', () => this.loadGlobalStats());
         }
+    }
+    
+    // Set up tab switching functionality for auth interface
+    setupTabSwitching() {
+        console.log('Setting up tab switching...');
+        
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.getAttribute('data-tab');
+                
+                // Remove active class from all buttons
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                // Remove active class from all tab contents
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Add active class to clicked button
+                button.classList.add('active');
+                
+                // Show corresponding tab content
+                const targetContent = document.getElementById(`${targetTab}-tab`);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                }
+                
+                console.log(`Switched to ${targetTab} tab`);
+            });
+        });
+        
+        console.log('Tab switching functionality enabled');
     }
 
     // Check if user has existing session (OAuth only)

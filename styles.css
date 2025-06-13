@@ -77,6 +77,139 @@ body {
     margin-left: 0.5rem;
 }
 
+/* Tabbed Authentication Interface */
+.auth-container {
+    background: var(--bg-primary);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.auth-tabs {
+    display: flex;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tab-button {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+}
+
+.tab-button:hover {
+    color: var(--primary-color);
+    background: rgba(74, 144, 226, 0.05);
+}
+
+.tab-button.active {
+    color: var(--primary-color);
+    background: var(--bg-primary);
+    border-bottom-color: var(--primary-color);
+}
+
+.tab-content {
+    display: none;
+    padding: 0;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.tab-inner {
+    padding: 2rem;
+    text-align: center;
+}
+
+.tab-inner h3 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.tab-inner p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.auth-button {
+    width: 100%;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: var(--text-white);
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+}
+
+.auth-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+}
+
+.auth-benefits {
+    background: var(--bg-accent);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.auth-benefits h4 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.auth-benefits ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.auth-benefits li {
+    padding: 0.5rem 0;
+    color: var(--text-primary);
+    font-weight: 500;
+    border-bottom: 1px solid rgba(74, 144, 226, 0.1);
+}
+
+.auth-benefits li:last-child {
+    border-bottom: none;
+}
+
+.auth-info {
+    background: rgba(74, 144, 226, 0.05);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--primary-color);
+}
+
+.auth-info p {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    text-align: left;
+}
+
+.auth-info strong {
+    color: var(--primary-color);
+}
+
 .container {
     max-width: 1200px;
     margin: 0 auto;

@@ -120,28 +120,57 @@
                                 </div>
                             </div>
 
-                            <!-- OAuth Login Section -->
+                            <!-- OAuth Login/Signup Section with Tabs -->
                             <div id="signup-section" class="signup-section">
-                                <div style="text-align: center; padding: 20px;">
-                                    <h3>🚰 Welcome to ROFLFaucet!</h3>
-                                    <p>Connect with your DirectSponsor account to start claiming tokens</p>
+                                <div class="auth-container">
+                                    <!-- Tab Headers -->
+                                    <div class="auth-tabs">
+                                        <button class="tab-button active" data-tab="login">Log In</button>
+                                        <button class="tab-button" data-tab="signup">Sign Up</button>
+                                    </div>
                                     
-                                    <button id="signup-btn" class="signup-button">
-                                        <span>🔐 Sign in with DirectSponsor</span>
-                                    </button>
+                                    <!-- Log In Tab -->
+                                    <div class="tab-content active" id="login-tab">
+                                        <div class="tab-inner">
+                                            <h3>👋 Welcome Back!</h3>
+                                            <p>Sign in to your DirectSponsor account to continue claiming tokens</p>
+                                            
+                                            <button id="login-btn" class="auth-button">
+                                                <span>🔐 Sign in with DirectSponsor</span>
+                                            </button>
+                                            
+                                            <div class="auth-info">
+                                                <p><strong>💰 Your Progress Saved:</strong><br>
+                                                Your balance, achievements, and voting history are all preserved.</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                     
-                                    <p style="margin: 15px 0 5px 0; color: #666; font-size: 0.9rem;">
-                                        Don't have a DirectSponsor account?
-                                    </p>
-                                    <p style="margin: 0; font-size: 0.85rem;">
-                                        <strong>No problem!</strong> You can create one during the sign-in process.
-                                    </p>
-                                    
-                                    <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #4A90E2;">
-                                        <p style="margin: 0; font-size: 0.8rem; color: #555;">
-                                            <strong>📱 One Account, Multiple Sites:</strong><br>
-                                            Your DirectSponsor account works across our entire ecosystem - ROFLFaucet, ClickForCharity, and more!
-                                        </p>
+                                    <!-- Sign Up Tab -->
+                                    <div class="tab-content" id="signup-tab">
+                                        <div class="tab-inner">
+                                            <h3>🎉 Join ROFLFaucet!</h3>
+                                            <p>Create your DirectSponsor account and start earning UselessCoins</p>
+                                            
+                                            <button id="signup-btn" class="auth-button">
+                                                <span>🚀 Create DirectSponsor Account</span>
+                                            </button>
+                                            
+                                            <div class="auth-benefits">
+                                                <h4>✨ What You Get:</h4>
+                                                <ul>
+                                                    <li>🎲 Claim UselessCoins every hour</li>
+                                                    <li>🗳️ Vote on charity projects</li>
+                                                    <li>🏆 Unlock achievements & rewards</li>
+                                                    <li>📱 One account across entire ecosystem</li>
+                                                </ul>
+                                            </div>
+                                            
+                                            <div class="auth-info">
+                                                <p><strong>🌐 Ecosystem Access:</strong><br>
+                                                Your account works on ROFLFaucet, ClickForCharity, DirectSponsor, and more!</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -207,10 +207,15 @@ app.post('/api/claim', async (req, res) => {
     const tokensAwarded = 5;
     
     // Update user data in DirectSponsor OAuth
-    const updateResponse = await axios.post(`${OAUTH_CONFIG.directSponsorBaseUrl}/oauth/update-user`, {
-      worthless_token_balance_increment: tokensAwarded,
-      roflfaucet_total_claims_increment: 1,
-      roflfaucet_last_claim: Date.now()
+    const updateResponse = await axios.post(`https://auth.directsponsor.org/oauth/update-user`, {
+      site_token_increment: tokensAwarded,
+      site_claims_increment: 1,
+      site_last_claim: Math.floor(Date.now() / 1000),
+      useless_coin_increment: 1, // Award 1 ecosystem coin too
+      total_claims_increment: 1,
+      last_claim_timestamp: Math.floor(Date.now() / 1000),
+      activity_type: 'claim',
+      site_id: 'roflfaucet'
     }, {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -247,15 +252,26 @@ app.post('/api/claim', async (req, res) => {
 // Get leaderboard from DirectSponsor OAuth (FULLY CENTRALIZED)
 app.get('/api/leaderboard', async (req, res) => {
   try {
+    // Get access token from request
+    const authHeader = req.headers.authorization;
+    const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+    
+    if (!accessToken) {
+      return res.status(401).json({ error: 'Access token required for leaderboard' });
+    }
+    
     // Get leaderboard data from DirectSponsor OAuth
-    const leaderboardResponse = await axios.get(`${OAUTH_CONFIG.directSponsorBaseUrl}/oauth/leaderboard/worthless-tokens`, {
+    const leaderboardResponse = await axios.get('https://auth.directsponsor.org/oauth/leaderboard?site_id=roflfaucet&type=site_tokens', {
       headers: {
-        'Authorization': `Bearer ${req.headers.authorization?.substring(7)}`
+        'Authorization': `Bearer ${accessToken}`
       }
     });
     
     res.json({
-      leaderboard: leaderboardResponse.data.leaderboard,
+      leaderboard: leaderboardResponse.data.leaderboard || [],
+      user_rank: leaderboardResponse.data.user_rank,
+      user_score: leaderboardResponse.data.user_score,
+      total_entries: leaderboardResponse.data.total_entries,
       _source: 'DirectSponsor OAuth (fully centralized)'
     });
     
@@ -265,8 +281,11 @@ app.get('/api/leaderboard', async (req, res) => {
     // Fallback response if centralized leaderboard not available yet
     res.json({
       leaderboard: [],
+      user_rank: null,
+      user_score: 0,
+      total_entries: 0,
       error: 'Leaderboard temporarily unavailable',
-      _note: 'DirectSponsor OAuth leaderboard endpoint needs implementation'
+      _note: 'DirectSponsor OAuth leaderboard endpoint temporarily down'
     });
   }
 });
@@ -289,15 +308,31 @@ app.get('/api/stats', async (req, res) => {
   } catch (error) {
     console.error('Failed to fetch stats from DirectSponsor:', error.response?.data || error.message);
     
-    // Fallback stats if centralized stats not available yet
-    res.json({
-      activeGameUsers: 0,
-      totalClaims: 0,
-      totalTokensDistributed: 0,
-      averageBalance: 0,
-      error: 'Stats temporarily unavailable',
-      _note: 'DirectSponsor OAuth stats endpoint needs implementation'
-    });
+    // Return real stats from DirectSponsor
+    try {
+      const statsResponse = await axios.get('https://auth.directsponsor.org/oauth/stats?site_id=roflfaucet');
+      const statsData = statsResponse.data;
+      
+      res.json({
+        activeGameUsers: statsData.activeGameUsers || 0,
+        totalClaims: statsData.totalClaims || 0,
+        totalTokensDistributed: statsData.totalTokensDistributed || 0,
+        averageBalance: parseFloat(statsData.averageBalance) || 0,
+        topUserBalance: statsData.topUserBalance || 0,
+        lastUpdated: statsData.last_updated
+      });
+    } catch (statsError) {
+      console.error('DirectSponsor stats API failed:', statsError.message);
+      
+      // Final fallback
+      res.json({
+        activeGameUsers: 0,
+        totalClaims: 0,
+        totalTokensDistributed: 0,
+        averageBalance: 0,
+        error: 'Stats temporarily unavailable'
+      });
+    }
   }
 });
 

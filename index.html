@@ -343,17 +343,24 @@
 
         // OAuth Login Functions
         function startOAuthLogin() {
-            // Redirect to DirectSponsor OAuth
-            const redirectUri = encodeURIComponent(window.location.href);
-            const oauthUrl = `https://directsponsor.org/oauth/authorize?response_type=code&client_id=roflfaucet&redirect_uri=${redirectUri}&scope=read+write`;
-            window.location.href = oauthUrl;
+            console.log('OAuth Login clicked');
+            // For now, fallback to simple login for testing
+            const username = prompt('Enter username for testing (OAuth coming soon):');
+            if (username) {
+                localStorage.setItem('uselesscoin_user', username);
+                document.cookie = `uselesscoin_user=${username}; path=/; max-age=31536000`;
+                currentUser = username;
+                showUserSection();
+                updateBalance();
+                initializeVotingWidgets();
+                showNotification(`Welcome ${username}! Testing mode active.`, 'success');
+            }
         }
         
         function startOAuthSignup() {
-            // Redirect to DirectSponsor signup flow
-            const redirectUri = encodeURIComponent(window.location.href);
-            const signupUrl = `https://directsponsor.org/oauth/authorize?response_type=code&client_id=roflfaucet&redirect_uri=${redirectUri}&scope=read+write&signup=true`;
-            window.location.href = signupUrl;
+            console.log('OAuth Signup clicked');
+            // For now, same as login for testing
+            startOAuthLogin();
         }
 
         function logout() {

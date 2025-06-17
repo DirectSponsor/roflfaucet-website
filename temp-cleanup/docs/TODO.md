@@ -45,6 +45,28 @@
   - Action needed: Access YouTube Studio and delete/unlist the background video
 
 ## New Features
+
+- [ ] **Unified Site-Wide Ad Network System**
+  - Added: 2025-06-14 (from Andy's strategic planning)
+  - **Current Status**: ROFLFaucet has ad rotation system, docs site has sidebar ads working
+  - **Goal**: Extend existing ROFLFaucet ad system to serve entire SatoshiHost network
+  - **Vision**: Central ad network that all sites can tap into
+  - **Technical Requirements**:
+    - API endpoints for other sites to fetch ads
+    - Configurable ad "bunches" - sites can select specific categories
+    - Unified content management for ads, funny images, project promotions
+    - Cross-site rotation logic and analytics
+  - **Integration Points**:
+    - Docs site sidebar ads (already implemented, ready to connect)
+    - ClickForCharity site integration
+    - DirectSponsor site integration
+    - Any future network sites
+  - **Benefits**:
+    - Consistent cross-promotion across all projects
+    - Centralized content management
+    - Network-wide marketing efficiency
+    - Easier content updates across sites
+  - **Priority**: Medium-High - improves entire network operation
 - [ ] **Content Positioning System**
   - Added: 2025-06-09
   - Weighted content management for sidebars and center column

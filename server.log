@@ -1,0 +1,29 @@
+nohup: ignoring input
+
+> roflfaucet@0.1.0 start
+> node src/index.js
+
+🎲 ROFLFaucet server running on port 3000
+📱 Visit: http://localhost:3000
+🔧 API: http://localhost:3000/api/health
+🎥 Video API: http://localhost:3000/api/video/random
+🖼️  Image API: http://localhost:3000/api/image/random
+🎬 Enhanced Media API: http://localhost:3000/api/media/random
+💰 Ready to dispense UselessCoins!
+🤖 Auto video discovery system starting...
+🎨 Auto image discovery system starting...
+🚀 Enhanced media manager with Imgur integration starting...
+📹 Video cache loaded from file
+🔄 Video cache is stale, updating now...
+🚀 Starting automatic video discovery...
+🔍 Discovering YouTube videos from @roflfaucet8041...
+📺 Odysee discovery disabled - using YouTube only for now
+📅 Video auto-discovery scheduled every 6 hours
+🖼️  Image cache loaded from file
+📅 Image auto-discovery scheduled every 4 hours
+🎬 Media cache loaded from file
+📅 Media auto-discovery scheduled every 6 hours
+🎯 Found YouTube channel ID: UC8qI0vP4MKrUd0HQF4MRaJg
+✅ Found 15 YouTube videos
+📹 Video cache saved successfully
+✅ Video discovery completed: 15 total videos

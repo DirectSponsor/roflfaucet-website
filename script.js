@@ -657,7 +657,7 @@ class ROFLFaucet {
         
         try {
             // Hit the real auth server
-            console.log('Attempting signup with real auth server...');
+            console.log('🌐 Attempting signup with real auth server...');
             const response = await fetch('https://auth.directsponsor.org/auth-modal.php', {
                 method: 'POST',
                 headers: {
@@ -667,37 +667,59 @@ class ROFLFaucet {
             });
             
             const result = await response.text();
-            console.log('Auth server response:', result);
+            console.log('✅ Auth server response:', result);
             
-            // Store user locally regardless of server response (for demo persistence)
+            // Store auth server status
+            localStorage.setItem('auth_server_status', JSON.stringify({
+                lastSuccess: new Date().toISOString(),
+                working: true,
+                lastResponse: result.substring(0, 100) // First 100 chars for debugging
+            }));
+            
+            // Store user locally with server confirmation
             storedUsers[userKey] = {
                 username: username,
                 email: email,
                 password: password, // In production, this would be hashed
-                created: new Date().toISOString()
+                created: new Date().toISOString(),
+                serverConfirmed: true,
+                authSource: 'directsponsor'
             };
             localStorage.setItem('demo_users', JSON.stringify(storedUsers));
             
             // Successful signup
-            console.log('User registered successfully:', username);
+            console.log('✅ User registered with auth server:', username);
             this.mockSuccessfulAuth(username);
             this.hideAuthModal();
+            this.showMessage(`Welcome ${username}! Registered with DirectSponsor auth server.`, 'success');
             
         } catch (error) {
-            console.error('Signup error:', error);
+            console.error('❌ Auth server error:', error);
             
-            // Even if server fails, still register locally for demo
+            // Store auth server failure status
+            localStorage.setItem('auth_server_status', JSON.stringify({
+                lastFailure: new Date().toISOString(),
+                working: false,
+                lastError: error.message,
+                errorType: error.name
+            }));
+            
+            // Store user locally as fallback but mark it clearly
             storedUsers[userKey] = {
                 username: username,
                 email: email,
                 password: password,
-                created: new Date().toISOString()
+                created: new Date().toISOString(),
+                serverConfirmed: false,
+                authSource: 'local_fallback',
+                serverError: error.message
             };
             localStorage.setItem('demo_users', JSON.stringify(storedUsers));
             
-            console.log('Stored user locally despite server error');
+            console.log('⚠️ Stored user locally as fallback - auth server unavailable');
             this.mockSuccessfulAuth(username);
             this.hideAuthModal();
+            this.showMessage(`Welcome ${username}! Note: Using local authentication (server temporarily unavailable).`, 'warning');
         }
     }
     
@@ -1421,5 +1443,45 @@ window.testGiphyLoad = function() {
     .catch(error => {
         console.error('❌ Manual test error:', error);
     });
+};
+
+// Auth server monitoring function
+window.checkAuthServerStatus = function() {
+    console.log('🔍 Checking auth server status...');
+    
+    const status = localStorage.getItem('auth_server_status');
+    if (status) {
+        const parsedStatus = JSON.parse(status);
+        console.log('📊 Auth Server Status:', parsedStatus);
+        
+        if (parsedStatus.working) {
+            console.log('✅ Auth server is working');
+            console.log('🕒 Last success:', parsedStatus.lastSuccess);
+            console.log('📝 Last response:', parsedStatus.lastResponse);
+        } else {
+            console.log('❌ Auth server has issues');
+            console.log('🕒 Last failure:', parsedStatus.lastFailure);
+            console.log('❌ Error:', parsedStatus.lastError);
+        }
+    } else {
+        console.log('⚠️ No auth server status recorded yet');
+    }
+    
+    // Check current users
+    const users = JSON.parse(localStorage.getItem('demo_users') || '{}');
+    console.log('👥 Registered users:');
+    Object.keys(users).forEach(email => {
+        const user = users[email];
+        console.log(`  📧 ${email}: ${user.username} (${user.authSource || 'unknown source'})`);
+        if (user.serverConfirmed === false) {
+            console.log(`    ⚠️ Local fallback - server error: ${user.serverError}`);
+        }
+    });
+    
+    return {
+        serverStatus: status ? JSON.parse(status) : null,
+        userCount: Object.keys(users).length,
+        users: users
+    };
 };
 

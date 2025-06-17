@@ -134,6 +134,82 @@
                                 </div>
                             </div>
                             
+                            <!-- Authentication Modal Overlay -->
+                            <div id="auth-modal-overlay" class="modal-overlay" style="display: none;">
+                                <div class="modal-container">
+                                    <div class="modal-header">
+                                        <h1>🔐 DirectSponsor</h1>
+                                        <p>Authentication for SatoshiHost Ecosystem</p>
+                                        <button class="modal-close" id="modal-close-btn" title="Close">&times;</button>
+                                    </div>
+                                    
+                                    <div class="auth-tabs">
+                                        <button class="tab-button active" onclick="switchAuthTab('login')">
+                                            Sign In
+                                        </button>
+                                        <button class="tab-button" onclick="switchAuthTab('signup')">
+                                            Sign Up
+                                        </button>
+                                    </div>
+                                    
+                                    <div id="auth-error-display" class="auth-error" style="display: none;"></div>
+                                    
+                                    <!-- Login Tab -->
+                                    <div class="tab-content active" id="modal-login-tab">
+                                        <form id="modal-login-form">
+                                            <div class="form-group">
+                                                <label for="modal-login-email">Email Address</label>
+                                                <input type="email" id="modal-login-email" name="email" required>
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="modal-login-password">Password</label>
+                                                <input type="password" id="modal-login-password" name="password" required>
+                                            </div>
+                                            
+                                            <button type="submit" class="auth-btn">🔐 Sign In</button>
+                                        </form>
+                                        
+                                        <div class="modal-info">
+                                            <h4>Welcome Back!</h4>
+                                            <p>Access your tokens and continue where you left off</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Signup Tab -->
+                                    <div class="tab-content" id="modal-signup-tab">
+                                        <form id="modal-signup-form">
+                                            <div class="form-group">
+                                                <label for="modal-signup-username">Username</label>
+                                                <input type="text" id="modal-signup-username" name="username" required>
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="modal-signup-email">Email Address</label>
+                                                <input type="email" id="modal-signup-email" name="email" required>
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="modal-signup-password">Password</label>
+                                                <input type="password" id="modal-signup-password" name="password" required minlength="8" placeholder="Minimum 8 characters">
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="modal-signup-confirm">Confirm Password</label>
+                                                <input type="password" id="modal-signup-confirm" name="confirm_password" required>
+                                            </div>
+                                            
+                                            <button type="submit" class="auth-btn">🚀 Create Account</button>
+                                        </form>
+                                        
+                                        <div class="modal-info">
+                                            <h4>Join the Ecosystem</h4>
+                                            <p>One account for faucets, charity voting, and more!</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <!-- User Section -->
                             <div id="user-section" class="user-section" style="display: none;">
                                 <div class="user-welcome">
@@ -590,6 +666,23 @@
     
     <!-- Beta Testing Functions -->
     <script>
+        // Modal tab switching function
+        function switchAuthTab(tab) {
+            // Remove active classes
+            document.querySelectorAll('.modal-container .tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.modal-container .tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active classes
+            document.querySelector(`[onclick="switchAuthTab('${tab}')"]`).classList.add('active');
+            document.getElementById(`modal-${tab}-tab`).classList.add('active');
+            
+            // Clear error display
+            const errorDisplay = document.getElementById('auth-error-display');
+            if (errorDisplay) {
+                errorDisplay.style.display = 'none';
+            }
+        }
+        
         function simpleBetaLogin() {
             console.log('Beta login clicked');
             const username = prompt('Enter your username for beta testing:');

@@ -30,34 +30,21 @@ class DirectSponsorAuth {
         return Math.random().toString(36).substring(2) + Date.now().toString(36);
     }
     
-    // Initiate OAuth login flow with popup modal
+    // Initiate OAuth login flow with floating modal
     login() {
-        const state = this.generateState();
-        localStorage.setItem('oauth_state', state);
+        console.log('🔐 Opening DirectSponsor authentication modal...');
         
-        const authUrl = `${this.authBaseUrl}/auth-modal.php?` +
-            `client_id=${encodeURIComponent(this.clientId)}&` +
-            `response_type=code&` +
-            `redirect_uri=${encodeURIComponent(this.redirectUri)}&` +
-            `scope=${encodeURIComponent(this.scopes)}&` +
-            `state=${encodeURIComponent(state)}`;
-        
-        console.log('🔐 Opening DirectSponsor authentication popup...');
-        
-        // Open popup window for authentication
-        const popup = window.open(
-            authUrl,
-            'directsponsor_auth',
-            'width=450,height=650,scrollbars=yes,resizable=yes,centerscreen=yes,toolbar=no,menubar=no'
-        );
-        
-        if (!popup) {
-            alert('Popup blocked! Please allow popups and try again.');
-            return;
+        // Show the modal overlay
+        const modalOverlay = document.getElementById('auth-modal-overlay');
+        if (modalOverlay) {
+            modalOverlay.style.display = 'flex';
+            
+            // Set up modal close handlers
+            this.setupModalHandlers();
+        } else {
+            console.error('Auth modal not found!');
+            alert('Authentication system not ready. Please refresh the page.');
         }
-        
-        // Listen for authentication completion
-        this.listenForAuthResult(popup);
     }
     
     // Listen for authentication result from popup

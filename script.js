@@ -472,19 +472,162 @@ class ROFLFaucet {
         if (welcomeSection) welcomeSection.style.display = 'block';
         if (userSection) userSection.style.display = 'none';
         
-        // Set up welcome button to trigger OAuth popup
+        // Set up welcome button to trigger auth modal
         const startBtn = document.getElementById('start-claiming-btn');
         if (startBtn) {
             startBtn.addEventListener('click', () => {
-                if (window.directSponsorAuth) {
-                    window.directSponsorAuth.login();
-                } else {
-                    alert('Authentication system loading. Please try again in a moment.');
-                }
+                this.showAuthModal();
             });
         }
         
         console.log('Showing welcome interface');
+    }
+    
+    // Show authentication modal
+    showAuthModal() {
+        const modalOverlay = document.getElementById('auth-modal-overlay');
+        if (modalOverlay) {
+            modalOverlay.style.display = 'flex';
+            this.setupModalHandlers();
+        }
+    }
+    
+    // Hide authentication modal
+    hideAuthModal() {
+        const modalOverlay = document.getElementById('auth-modal-overlay');
+        if (modalOverlay) {
+            modalOverlay.style.display = 'none';
+        }
+    }
+    
+    // Setup modal event handlers
+    setupModalHandlers() {
+        // Close button
+        const closeBtn = document.getElementById('modal-close-btn');
+        if (closeBtn) {
+            closeBtn.onclick = () => this.hideAuthModal();
+        }
+        
+        // Click outside to close
+        const modalOverlay = document.getElementById('auth-modal-overlay');
+        if (modalOverlay) {
+            modalOverlay.onclick = (e) => {
+                if (e.target === modalOverlay) {
+                    this.hideAuthModal();
+                }
+            };
+        }
+        
+        // Setup form handlers
+        this.setupAuthForms();
+    }
+    
+    // Setup authentication form handlers
+    setupAuthForms() {
+        const loginForm = document.getElementById('modal-login-form');
+        const signupForm = document.getElementById('modal-signup-form');
+        
+        if (loginForm) {
+            loginForm.onsubmit = (e) => this.handleModalLogin(e);
+        }
+        
+        if (signupForm) {
+            signupForm.onsubmit = (e) => this.handleModalSignup(e);
+        }
+    }
+    
+    // Handle modal login
+    async handleModalLogin(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('modal-login-email').value;
+        const password = document.getElementById('modal-login-password').value;
+        
+        try {
+            const response = await fetch('https://auth.directsponsor.org/auth-modal.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `action=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+            });
+            
+            if (response.ok) {
+                // Mock successful login for now
+                this.mockSuccessfulAuth(email.split('@')[0]);
+                this.hideAuthModal();
+            } else {
+                this.showAuthError('Login failed. Please try again.');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            this.showAuthError('Network error. Please try again.');
+        }
+    }
+    
+    // Handle modal signup  
+    async handleModalSignup(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('modal-signup-username').value;
+        const email = document.getElementById('modal-signup-email').value;
+        const password = document.getElementById('modal-signup-password').value;
+        const confirmPassword = document.getElementById('modal-signup-confirm').value;
+        
+        if (password !== confirmPassword) {
+            this.showAuthError('Passwords do not match');
+            return;
+        }
+        
+        try {
+            const response = await fetch('https://auth.directsponsor.org/auth-modal.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `action=signup&username=${encodeURIComponent(username)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&confirm_password=${encodeURIComponent(confirmPassword)}`
+            });
+            
+            if (response.ok) {
+                // Mock successful signup for now
+                this.mockSuccessfulAuth(username);
+                this.hideAuthModal();
+            } else {
+                this.showAuthError('Signup failed. Please try again.');
+            }
+        } catch (error) {
+            console.error('Signup error:', error);
+            this.showAuthError('Network error. Please try again.');
+        }
+    }
+    
+    // Mock successful authentication (for demo)
+    mockSuccessfulAuth(username) {
+        // Store user info
+        this.userId = username;
+        this.username = username;
+        localStorage.setItem('access_token', 'demo_token_' + Date.now());
+        localStorage.setItem('username', username);
+        
+        // Switch to user interface
+        this.showUserInterface();
+        this.updateUI();
+        
+        this.showMessage(`Welcome to ROFLFaucet, ${username}!`, 'success');
+    }
+    
+    // Show authentication error
+    showAuthError(message) {
+        const errorDisplay = document.getElementById('auth-error-display');
+        if (errorDisplay) {
+            errorDisplay.textContent = message;
+            errorDisplay.style.display = 'block';
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                errorDisplay.style.display = 'none';
+            }, 5000);
+        }
     }
     
     showUserInterface() {

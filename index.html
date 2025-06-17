@@ -135,8 +135,8 @@
                                             <h3>👋 Welcome Back!</h3>
                                             <p>Sign in to your DirectSponsor account to continue claiming tokens</p>
                                             
-                                            <button id="login-btn" class="auth-button">
-                                                <span>🔐 Sign in with DirectSponsor</span>
+                                            <button id="login-btn" class="auth-button" onclick="simpleBetaLogin()">
+                                                <span>🔐 Sign in (Beta Testing)</span>
                                             </button>
                                             
                                             <div class="auth-info">
@@ -152,8 +152,8 @@
                                             <h3>🎉 Join ROFLFaucet!</h3>
                                             <p>Create your DirectSponsor account and start earning UselessCoins</p>
                                             
-                                            <button id="signup-btn" class="auth-button">
-                                                <span>🚀 Create DirectSponsor Account</span>
+                                            <button id="signup-btn" class="auth-button" onclick="simpleBetaSignup()">
+                                                <span>🚀 Join Beta Testing</span>
                                             </button>
                                             
                                             <div class="auth-benefits">
@@ -628,6 +628,37 @@
     <!-- Scripts -->
     <script src="oauth-client.js"></script>
     <script src="script.js"></script>
+    
+    <!-- Beta Testing Functions -->
+    <script>
+        function simpleBetaLogin() {
+            console.log('Beta login clicked');
+            const username = prompt('Enter your username for beta testing:');
+            if (username && username.trim()) {
+                // Store user info
+                localStorage.setItem('uselesscoin_user', username.trim());
+                localStorage.setItem('access_token', 'beta_token_' + Date.now());
+                localStorage.setItem('username', username.trim());
+                
+                // Initialize the app with this user
+                if (window.roflFaucetApp) {
+                    window.roflFaucetApp.userId = username.trim();
+                    window.roflFaucetApp.username = username.trim();
+                    window.roflFaucetApp.isAuthenticated = true;
+                    window.roflFaucetApp.showUserSection();
+                    window.roflFaucetApp.loadUserStats();
+                }
+                
+                alert('Welcome to ROFLFaucet Beta, ' + username + '!');
+            }
+        }
+        
+        function simpleBetaSignup() {
+            console.log('Beta signup clicked');
+            // Same as login for beta testing
+            simpleBetaLogin();
+        }
+    </script>
 </body>
 </html>
 

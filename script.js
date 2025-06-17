@@ -503,7 +503,7 @@ class ROFLFaucet {
         if (claimBtn && btnText) {
             claimBtn.disabled = !this.userStats.canClaim;
             if (this.userStats.canClaim) {
-                btnText.textContent = '🎲 Claim 5 WorthlessTokens!';
+                btnText.textContent = '🎲 Claim 5 UselessCoins!';
             } else {
                 btnText.textContent = 'Cooldown Active';
             }
@@ -755,8 +755,13 @@ class ROFLFaucet {
     showUserInterface() {
         const signupSection = document.getElementById('signup-section');
         const userSection = document.getElementById('user-section');
+        const welcomeSection = document.getElementById('welcome-section');
         
+        // Hide welcome/signup sections
         if (signupSection) signupSection.style.display = 'none';
+        if (welcomeSection) welcomeSection.style.display = 'none';
+        
+        // Show user interface
         if (userSection) userSection.style.display = 'block';
         
         console.log('Showing user interface for:', this.username);

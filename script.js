@@ -32,29 +32,17 @@ class ROFLFaucet {
         // Set up tab switching
         this.setupTabSwitching();
         
-        // Login button - use beta function for testing
+        // Login button
         const loginBtn = document.getElementById('login-btn');
         if (loginBtn) {
-            loginBtn.addEventListener('click', () => {
-                if (window.simpleBetaLogin) {
-                    window.simpleBetaLogin();
-                } else {
-                    this.handleSignup();
-                }
-            });
+            loginBtn.addEventListener('click', () => this.handleSignup());
             console.log('Login button found and connected');
         }
         
-        // Signup button - use beta function for testing
+        // Signup button
         const signupBtn = document.getElementById('signup-btn');
         if (signupBtn) {
-            signupBtn.addEventListener('click', () => {
-                if (window.simpleBetaSignup) {
-                    window.simpleBetaSignup();
-                } else {
-                    this.handleSignup();
-                }
-            });
+            signupBtn.addEventListener('click', () => this.handleSignup());
             console.log('Signup button found and connected');
         }
         

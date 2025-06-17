@@ -78,10 +78,66 @@ class ROFLFaucet {
     setupTabSwitching() {
         console.log('Setting up tab switching...');
         
-        // Note: Tab switching is handled by inline onclick handlers in HTML
-        // This avoids conflicts between event listeners and inline handlers
+        // Set up proper event listeners for modal tab buttons
+        const loginTabBtn = document.getElementById('modal-login-tab-btn');
+        const signupTabBtn = document.getElementById('modal-signup-tab-btn');
         
-        console.log('Tab switching will be handled by inline onclick handlers');
+        if (loginTabBtn) {
+            loginTabBtn.addEventListener('click', () => {
+                console.log('Login tab clicked');
+                this.switchModalTab('login');
+            });
+            console.log('Login tab button event listener added');
+        }
+        
+        if (signupTabBtn) {
+            signupTabBtn.addEventListener('click', () => {
+                console.log('Signup tab clicked');
+                this.switchModalTab('signup');
+            });
+            console.log('Signup tab button event listener added');
+        }
+        
+        console.log('Tab switching event listeners setup complete');
+    }
+    
+    // Switch modal tabs
+    switchModalTab(tab) {
+        console.log('switchModalTab called with tab:', tab);
+        
+        // Remove active classes from all tabs
+        document.querySelectorAll('.modal-container .tab-button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelectorAll('.modal-container .tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        
+        // Add active class to selected tab button
+        const targetButton = document.getElementById(`modal-${tab}-tab-btn`);
+        if (targetButton) {
+            targetButton.classList.add('active');
+            console.log(`Added active class to ${tab} button`);
+        } else {
+            console.error(`Could not find button with ID: modal-${tab}-tab-btn`);
+        }
+        
+        // Add active class to selected tab content
+        const targetTab = document.getElementById(`modal-${tab}-tab`);
+        if (targetTab) {
+            targetTab.classList.add('active');
+            console.log(`Added active class to ${tab} tab content`);
+        } else {
+            console.error(`Could not find tab content with ID: modal-${tab}-tab`);
+        }
+        
+        // Clear any error messages
+        const errorDisplay = document.getElementById('auth-error-display');
+        if (errorDisplay) {
+            errorDisplay.style.display = 'none';
+        }
+        
+        console.log(`Tab switch complete for: ${tab}`);
     }
 
     // Check if user has existing session (OAuth only)

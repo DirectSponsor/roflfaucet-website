@@ -726,6 +726,45 @@
             // Same as login for beta testing
             simpleBetaLogin();
         }
+        
+        // Test function to debug modal issues
+        function testModal() {
+            console.log('=== MODAL TEST START ===');
+            
+            // Check if modal exists
+            const modal = document.getElementById('auth-modal-overlay');
+            console.log('Modal found:', !!modal);
+            
+            // Check if tab buttons exist
+            const loginBtn = document.querySelector('[onclick="switchAuthTab(\'login\')"]');
+            const signupBtn = document.querySelector('[onclick="switchAuthTab(\'signup\')"]');
+            console.log('Login button found:', !!loginBtn);
+            console.log('Signup button found:', !!signupBtn);
+            
+            // Check if tab contents exist
+            const loginTab = document.getElementById('modal-login-tab');
+            const signupTab = document.getElementById('modal-signup-tab');
+            console.log('Login tab found:', !!loginTab);
+            console.log('Signup tab found:', !!signupTab);
+            
+            if (modal) {
+                modal.style.display = 'flex';
+                console.log('Modal should now be visible');
+                
+                // Test tab switching directly
+                setTimeout(() => {
+                    console.log('Testing signup tab switch...');
+                    switchAuthTab('signup');
+                }, 2000);
+                
+                setTimeout(() => {
+                    console.log('Testing login tab switch...');
+                    switchAuthTab('login');
+                }, 4000);
+            }
+            
+            console.log('=== MODAL TEST END ===');
+        }
     </script>
 </body>
 </html>

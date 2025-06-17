@@ -502,24 +502,35 @@ class ROFLFaucet {
     
     // Setup modal event handlers
     setupModalHandlers() {
+        console.log('Setting up modal handlers...');
+        
         // Close button
         const closeBtn = document.getElementById('modal-close-btn');
         if (closeBtn) {
-            closeBtn.onclick = () => this.hideAuthModal();
+            // Remove any existing handlers
+            closeBtn.onclick = null;
+            closeBtn.onclick = () => {
+                console.log('Modal close button clicked');
+                this.hideAuthModal();
+            };
         }
         
         // Click outside to close
         const modalOverlay = document.getElementById('auth-modal-overlay');
         if (modalOverlay) {
+            // Remove any existing handlers
+            modalOverlay.onclick = null;
             modalOverlay.onclick = (e) => {
                 if (e.target === modalOverlay) {
+                    console.log('Modal overlay clicked, closing modal');
                     this.hideAuthModal();
                 }
             };
         }
         
-        // Setup form handlers
-        this.setupAuthForms();
+        // Don't setup auth forms - they interfere with tab switching
+        // this.setupAuthForms();
+        console.log('Modal handlers setup complete');
     }
     
     // Setup authentication form handlers

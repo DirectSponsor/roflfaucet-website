@@ -130,9 +130,9 @@ class ROFLFaucet {
             return; // Let OAuth client handle the UI
         }
         
-        // Not authenticated, show sign-in interface
-        console.log('Showing sign-in interface');
-        this.showSignupInterface();
+        // Not authenticated, show welcome interface
+        console.log('Showing welcome interface');
+        this.showWelcomeInterface();
     }
 
     // Load OAuth user profile from DirectSponsor
@@ -465,14 +465,26 @@ class ROFLFaucet {
     }
 
     // Show/hide interface elements
-    showSignupInterface() {
-        const signupSection = document.getElementById('signup-section');
+    showWelcomeInterface() {
+        const welcomeSection = document.getElementById('welcome-section');
         const userSection = document.getElementById('user-section');
         
-        if (signupSection) signupSection.style.display = 'block';
+        if (welcomeSection) welcomeSection.style.display = 'block';
         if (userSection) userSection.style.display = 'none';
         
-        console.log('Showing signup interface');
+        // Set up welcome button to trigger OAuth popup
+        const startBtn = document.getElementById('start-claiming-btn');
+        if (startBtn) {
+            startBtn.addEventListener('click', () => {
+                if (window.directSponsorAuth) {
+                    window.directSponsorAuth.login();
+                } else {
+                    alert('Authentication system loading. Please try again in a moment.');
+                }
+            });
+        }
+        
+        console.log('Showing welcome interface');
     }
     
     showUserInterface() {

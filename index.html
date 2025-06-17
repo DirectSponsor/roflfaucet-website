@@ -120,57 +120,16 @@
                                 </div>
                             </div>
 
-                            <!-- OAuth Login/Signup Section with Tabs -->
-                            <div id="signup-section" class="signup-section">
-                                <div class="auth-container">
-                                    <!-- Tab Headers -->
-                                    <div class="auth-tabs">
-                                        <button class="tab-button active" data-tab="login">Log In</button>
-                                        <button class="tab-button" data-tab="signup">Sign Up</button>
-                                    </div>
-                                    
-                                    <!-- Log In Tab -->
-                                    <div class="tab-content active" id="login-tab">
-                                        <div class="tab-inner">
-                                            <h3>👋 Welcome Back!</h3>
-                                            <p>Sign in to your DirectSponsor account to continue claiming tokens</p>
-                                            
-                                            <button id="login-btn" class="auth-button">
-                                                <span>🔐 Sign in with DirectSponsor</span>
-                                            </button>
-                                            
-                                            <div class="auth-info">
-                                                <p><strong>💰 Your Progress Saved:</strong><br>
-                                                Your balance, achievements, and voting history are all preserved.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Sign Up Tab -->
-                                    <div class="tab-content" id="signup-tab">
-                                        <div class="tab-inner">
-                                            <h3>🎉 Join ROFLFaucet!</h3>
-                                            <p>Create your DirectSponsor account and start earning UselessCoins</p>
-                                            
-                                            <button id="signup-btn" class="auth-button">
-                                                <span>🚀 Sign up with DirectSponsor</span>
-                                            </button>
-                                            
-                                            <div class="auth-benefits">
-                                                <h4>✨ What You Get:</h4>
-                                                <ul>
-                                                    <li>🎲 Claim UselessCoins every hour</li>
-                                                    <li>🗳️ Vote on charity projects</li>
-                                                    <li>🏆 Unlock achievements & rewards</li>
-                                                    <li>📱 One account across entire ecosystem</li>
-                                                </ul>
-                                            </div>
-                                            
-                                            <div class="auth-info">
-                                                <p><strong>🌐 Ecosystem Access:</strong><br>
-                                                Your account works on ROFLFaucet, ClickForCharity, DirectSponsor, and more!</p>
-                                            </div>
-                                        </div>
+                            <!-- Welcome Message for Non-Authenticated Users -->
+                            <div id="welcome-section" class="welcome-section" style="display: none;">
+                                <div class="welcome-container">
+                                    <h3>🎉 Welcome to ROFLFaucet!</h3>
+                                    <p>Get ready to claim free UselessCoins while supporting charity projects.</p>
+                                    <button id="start-claiming-btn" class="auth-button">
+                                        <span>🚀 Start Claiming Tokens</span>
+                                    </button>
+                                    <div class="welcome-info">
+                                        <p>💡 <strong>How it works:</strong> We'll ask you to sign in when you're ready to claim your first tokens!</p>
                                     </div>
                                 </div>
                             </div>

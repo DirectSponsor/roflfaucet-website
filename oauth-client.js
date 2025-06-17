@@ -30,20 +30,69 @@ class DirectSponsorAuth {
         return Math.random().toString(36).substring(2) + Date.now().toString(36);
     }
     
-    // Initiate OAuth login flow
+    // Initiate OAuth login flow with popup modal
     login() {
         const state = this.generateState();
         localStorage.setItem('oauth_state', state);
         
-        const authUrl = `${this.authBaseUrl}/oauth/authorize.php?` +
+        const authUrl = `${this.authBaseUrl}/auth-modal.php?` +
             `client_id=${encodeURIComponent(this.clientId)}&` +
             `response_type=code&` +
             `redirect_uri=${encodeURIComponent(this.redirectUri)}&` +
             `scope=${encodeURIComponent(this.scopes)}&` +
             `state=${encodeURIComponent(state)}`;
         
-        console.log('🔐 Redirecting to DirectSponsor for authentication...');
-        window.location.href = authUrl;
+        console.log('🔐 Opening DirectSponsor authentication popup...');
+        
+        // Open popup window for authentication
+        const popup = window.open(
+            authUrl,
+            'directsponsor_auth',
+            'width=450,height=650,scrollbars=yes,resizable=yes,centerscreen=yes,toolbar=no,menubar=no'
+        );
+        
+        if (!popup) {
+            alert('Popup blocked! Please allow popups and try again.');
+            return;
+        }
+        
+        // Listen for authentication completion
+        this.listenForAuthResult(popup);
+    }
+    
+    // Listen for authentication result from popup
+    listenForAuthResult(popup) {
+        const handleMessage = (event) => {
+            // Verify origin for security
+            if (event.origin !== this.authBaseUrl) {
+                return;
+            }
+            
+            console.log('Received auth message:', event.data);
+            
+            if (event.data.type === 'auth_success') {
+                // Authentication successful - popup will handle redirect
+                window.removeEventListener('message', handleMessage);
+                popup.close();
+                console.log('Authentication successful, processing...');
+                
+            } else if (event.data.type === 'auth_cancelled') {
+                // User cancelled authentication
+                window.removeEventListener('message', handleMessage);
+                console.log('Authentication cancelled by user');
+            }
+        };
+        
+        window.addEventListener('message', handleMessage);
+        
+        // Monitor popup status
+        const checkPopup = setInterval(() => {
+            if (popup.closed) {
+                clearInterval(checkPopup);
+                window.removeEventListener('message', handleMessage);
+                console.log('Authentication popup closed');
+            }
+        }, 1000);
     }
     
     // Handle OAuth callback

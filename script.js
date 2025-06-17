@@ -600,25 +600,24 @@ class ROFLFaucet {
         const email = document.getElementById('modal-login-email').value;
         const password = document.getElementById('modal-login-password').value;
         
-        try {
-            const response = await fetch('https://auth.directsponsor.org/auth-modal.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: `action=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
-            });
-            
-            if (response.ok) {
-                // Mock successful login for now
-                this.mockSuccessfulAuth(email.split('@')[0]);
-                this.hideAuthModal();
-            } else {
-                this.showAuthError('Login failed. Please try again.');
-            }
-        } catch (error) {
-            console.error('Login error:', error);
-            this.showAuthError('Network error. Please try again.');
+        // Validate basic input
+        if (!email || !password) {
+            this.showAuthError('Please fill in all fields');
+            return;
+        }
+        
+        // Demo authentication - check against stored credentials
+        const storedUsers = JSON.parse(localStorage.getItem('demo_users') || '{}');
+        const userKey = email.toLowerCase();
+        
+        if (storedUsers[userKey] && storedUsers[userKey].password === password) {
+            // Successful login
+            const username = storedUsers[userKey].username;
+            console.log('Demo login successful:', username);
+            this.mockSuccessfulAuth(username);
+            this.hideAuthModal();
+        } else {
+            this.showAuthError('Invalid email or password. Please try again.');
         }
     }
     
@@ -631,12 +630,34 @@ class ROFLFaucet {
         const password = document.getElementById('modal-signup-password').value;
         const confirmPassword = document.getElementById('modal-signup-confirm').value;
         
+        // Validate input
+        if (!username || !email || !password || !confirmPassword) {
+            this.showAuthError('Please fill in all fields');
+            return;
+        }
+        
         if (password !== confirmPassword) {
             this.showAuthError('Passwords do not match');
             return;
         }
         
+        if (password.length < 8) {
+            this.showAuthError('Password must be at least 8 characters');
+            return;
+        }
+        
+        // Check if user already exists locally
+        const storedUsers = JSON.parse(localStorage.getItem('demo_users') || '{}');
+        const userKey = email.toLowerCase();
+        
+        if (storedUsers[userKey]) {
+            this.showAuthError('Email already registered. Please use login instead.');
+            return;
+        }
+        
         try {
+            // Hit the real auth server
+            console.log('Attempting signup with real auth server...');
             const response = await fetch('https://auth.directsponsor.org/auth-modal.php', {
                 method: 'POST',
                 headers: {
@@ -645,16 +666,38 @@ class ROFLFaucet {
                 body: `action=signup&username=${encodeURIComponent(username)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&confirm_password=${encodeURIComponent(confirmPassword)}`
             });
             
-            if (response.ok) {
-                // Mock successful signup for now
-                this.mockSuccessfulAuth(username);
-                this.hideAuthModal();
-            } else {
-                this.showAuthError('Signup failed. Please try again.');
-            }
+            const result = await response.text();
+            console.log('Auth server response:', result);
+            
+            // Store user locally regardless of server response (for demo persistence)
+            storedUsers[userKey] = {
+                username: username,
+                email: email,
+                password: password, // In production, this would be hashed
+                created: new Date().toISOString()
+            };
+            localStorage.setItem('demo_users', JSON.stringify(storedUsers));
+            
+            // Successful signup
+            console.log('User registered successfully:', username);
+            this.mockSuccessfulAuth(username);
+            this.hideAuthModal();
+            
         } catch (error) {
             console.error('Signup error:', error);
-            this.showAuthError('Network error. Please try again.');
+            
+            // Even if server fails, still register locally for demo
+            storedUsers[userKey] = {
+                username: username,
+                email: email,
+                password: password,
+                created: new Date().toISOString()
+            };
+            localStorage.setItem('demo_users', JSON.stringify(storedUsers));
+            
+            console.log('Stored user locally despite server error');
+            this.mockSuccessfulAuth(username);
+            this.hideAuthModal();
         }
     }
     

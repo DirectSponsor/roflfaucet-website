@@ -373,47 +373,39 @@ class ROFLFaucet {
                 return;
             }
             
-            const response = await fetch(`${this.apiBase}/api/claim`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    userId: this.userId,
-                    captchaToken: this.captchaToken,
-                    accessToken: accessToken // Pass token for centralized OAuth updates
-                })
-            });
+            // DEMO MODE: Mock successful claim until real API is ready
+            console.log('🎮 Demo mode: Simulating successful claim...');
             
-            const data = await response.json();
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
             
-            if (response.ok) {
-                this.userStats.balance = data.newBalance;
-                this.userStats.totalClaims = data.totalClaims;
-                this.userStats.canClaim = false;
-                this.userStats.nextClaimTime = new Date(data.nextClaimAvailable);
-                
-                this.showMessage(data.message, 'success');
-                this.updateUI();
-                this.startCountdown();
-                this.hideCaptchaSection();
-                
-                // Update global stats
-                this.loadGlobalStats();
-            } else {
-                if (data.captchaError) {
-                    this.showMessage('Security check failed. Please try again.', 'error');
-                    // Reset captcha for retry
-                    this.captchaToken = null;
-                    if (window.hcaptcha) {
-                        window.hcaptcha.reset();
-                    }
-                    this.updateCaptchaSubmitButton();
-                } else {
-                    this.showMessage(data.error || 'Claim failed', 'error');
-                    this.hideCaptchaSection();
-                }
-            }
+            // Mock successful response
+            const currentBalance = parseInt(localStorage.getItem('demo_balance') || '0');
+            const currentClaims = parseInt(localStorage.getItem('demo_claims') || '0');
+            const newBalance = currentBalance + 5;
+            const newClaims = currentClaims + 1;
+            
+            // Store demo data
+            localStorage.setItem('demo_balance', newBalance.toString());
+            localStorage.setItem('demo_claims', newClaims.toString());
+            localStorage.setItem('demo_last_claim', Date.now().toString());
+            
+            // Update user stats
+            this.userStats.balance = newBalance;
+            this.userStats.totalClaims = newClaims;
+            this.userStats.canClaim = false;
+            this.userStats.nextClaimTime = new Date(Date.now() + (15 * 60 * 1000)); // 15 minutes
+            
+            this.showMessage(`🎉 Successfully claimed 5 UselessCoins! New balance: ${newBalance} UC`, 'success');
+            this.updateUI();
+            this.startCountdown();
+            this.hideCaptchaSection();
+            
+            // Update global stats
+            this.loadGlobalStats();
+            
+            console.log('✅ Demo claim successful - waiting for real UselessCoin API integration');
+            
         } catch (error) {
             console.error('Claim error:', error);
             this.showMessage('Connection error. Please try again.', 'error');

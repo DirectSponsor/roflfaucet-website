@@ -78,32 +78,10 @@ class ROFLFaucet {
     setupTabSwitching() {
         console.log('Setting up tab switching...');
         
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabContents = document.querySelectorAll('.tab-content');
+        // Note: Tab switching is handled by inline onclick handlers in HTML
+        // This avoids conflicts between event listeners and inline handlers
         
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const targetTab = button.getAttribute('data-tab');
-                
-                // Remove active class from all buttons
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                // Remove active class from all tab contents
-                tabContents.forEach(content => content.classList.remove('active'));
-                
-                // Add active class to clicked button
-                button.classList.add('active');
-                
-                // Show corresponding tab content
-                const targetContent = document.getElementById(`${targetTab}-tab`);
-                if (targetContent) {
-                    targetContent.classList.add('active');
-                }
-                
-                console.log(`Switched to ${targetTab} tab`);
-            });
-        });
-        
-        console.log('Tab switching functionality enabled');
+        console.log('Tab switching will be handled by inline onclick handlers');
     }
 
     // Check if user has existing session (OAuth only)

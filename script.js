@@ -140,11 +140,24 @@ class ROFLFaucet {
         console.log(`Tab switch complete for: ${tab}`);
     }
 
-    // Check if user has existing session (OAuth only)
+    // Check if user has existing session
     async checkUserSession() {
         console.log('Checking user session...');
         
-        // Wait for OAuth client to be ready and check authentication
+        // Check for existing demo authentication first
+        const accessToken = localStorage.getItem('access_token');
+        const username = localStorage.getItem('username');
+        
+        if (accessToken && username) {
+            console.log('Found existing authentication:', username);
+            this.userId = username;
+            this.username = username;
+            this.showUserInterface();
+            this.updateUI();
+            return;
+        }
+        
+        // Check OAuth authentication if available
         if (window.directSponsorAuth) {
             try {
                 const isAuthenticated = await window.directSponsorAuth.isAuthenticated();
@@ -161,7 +174,6 @@ class ROFLFaucet {
             }
         } else {
             console.log('OAuth client not ready yet, will be handled by OAuth client init');
-            return; // Let OAuth client handle the UI
         }
         
         // Not authenticated, show welcome interface
@@ -562,8 +574,8 @@ class ROFLFaucet {
             };
         }
         
-        // Don't setup auth forms - they interfere with tab switching
-        // this.setupAuthForms();
+        // Setup auth forms now that tab switching is fixed
+        this.setupAuthForms();
         console.log('Modal handlers setup complete');
     }
     

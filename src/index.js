@@ -316,10 +316,18 @@ app.get('/api/stats', async (req, res) => {
   } catch (error) {
     console.error('Failed to fetch stats from DirectSponsor:', error.response?.data || error.message);
     
-    // Return real stats from DirectSponsor
+    // Return real stats from DirectSponsor backup endpoint
     try {
       const statsResponse = await axios.get('https://auth.directsponsor.org/oauth/stats?site_id=roflfaucet');
-      const statsData = statsResponse.data;
+      
+      // Handle response with potential leading whitespace
+      let statsData;
+      if (typeof statsResponse.data === 'string') {
+        // Parse JSON from string response with whitespace trimming
+        statsData = JSON.parse(statsResponse.data.trim());
+      } else {
+        statsData = statsResponse.data;
+      }
       
       res.json({
         activeGameUsers: statsData.activeGameUsers || 0,
@@ -327,7 +335,8 @@ app.get('/api/stats', async (req, res) => {
         totalTokensDistributed: statsData.totalTokensDistributed || 0,
         averageBalance: parseFloat(statsData.averageBalance) || 0,
         topUserBalance: statsData.topUserBalance || 0,
-        lastUpdated: statsData.last_updated
+        lastUpdated: statsData.last_updated,
+        _source: 'DirectSponsor OAuth backup endpoint'
       });
     } catch (statsError) {
       console.error('DirectSponsor stats API failed:', statsError.message);
@@ -338,7 +347,8 @@ app.get('/api/stats', async (req, res) => {
         totalClaims: 0,
         totalTokensDistributed: 0,
         averageBalance: 0,
-        error: 'Stats temporarily unavailable'
+        error: 'Stats temporarily unavailable',
+        _source: 'Fallback data'
       });
     }
   }

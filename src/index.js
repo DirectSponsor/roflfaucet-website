@@ -318,16 +318,17 @@ app.get('/api/stats', async (req, res) => {
     
     // Return real stats from DirectSponsor backup endpoint
     try {
-      const statsResponse = await axios.get('https://auth.directsponsor.org/oauth/stats?site_id=roflfaucet');
+      const statsResponse = await axios.get('https://auth.directsponsor.org/oauth/stats?site_id=roflfaucet', {
+        transformResponse: [(data) => {
+          // Handle potential leading whitespace in JSON response
+          if (typeof data === 'string') {
+            return JSON.parse(data.trim());
+          }
+          return data;
+        }]
+      });
       
-      // Handle response with potential leading whitespace
-      let statsData;
-      if (typeof statsResponse.data === 'string') {
-        // Parse JSON from string response with whitespace trimming
-        statsData = JSON.parse(statsResponse.data.trim());
-      } else {
-        statsData = statsResponse.data;
-      }
+      const statsData = statsResponse.data;
       
       res.json({
         activeGameUsers: statsData.activeGameUsers || 0,

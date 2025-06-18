@@ -319,16 +319,19 @@ app.get('/api/stats', async (req, res) => {
     // Return real stats from DirectSponsor backup endpoint
     try {
       const statsResponse = await axios.get('https://auth.directsponsor.org/oauth/stats?site_id=roflfaucet', {
-        transformResponse: [(data) => {
-          // Handle potential leading whitespace in JSON response
-          if (typeof data === 'string') {
-            return JSON.parse(data.trim());
-          }
-          return data;
-        }]
+        responseType: 'text' // Get raw text response to handle properly
       });
       
-      const statsData = statsResponse.data;
+      let responseText = statsResponse.data;
+      
+      // Check if response is HTML (starts with whitespace + <!DOCTYPE or <html)
+      if (typeof responseText === 'string' && responseText.trim().startsWith('<')) {
+        console.error('DirectSponsor backup endpoint returned HTML instead of JSON:', responseText.substring(0, 200));
+        throw new Error('Backup endpoint returned HTML instead of JSON');
+      }
+      
+      // Parse JSON, handling potential leading whitespace
+      const statsData = JSON.parse(responseText.trim());
       
       res.json({
         activeGameUsers: statsData.activeGameUsers || 0,

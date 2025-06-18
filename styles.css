@@ -1855,3 +1855,77 @@ section h2 {
     font-size: 0.9em;
 }
 
+
+/* User Action Buttons Styles */
+.user-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+    justify-content: center;
+}
+
+.refresh-button,
+.logout-button,
+.clear-data-button {
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    flex: 1;
+    min-width: 120px;
+    max-width: 140px;
+}
+
+.refresh-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.refresh-button:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.logout-button {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    color: white;
+}
+
+.logout-button:hover {
+    background: linear-gradient(135deg, #ff5252 0%, #d63031 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+.clear-data-button {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    border: 2px solid rgba(231, 76, 60, 0.3);
+}
+
+.clear-data-button:hover {
+    background: linear-gradient(135deg, #d63031 0%, #a63526 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(231, 76, 60, 0.5);
+    border-color: rgba(231, 76, 60, 0.6);
+}
+
+@media (max-width: 768px) {
+    .user-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .refresh-button,
+    .logout-button,
+    .clear-data-button {
+        min-width: unset;
+        max-width: unset;
+        width: 100%;
+    }
+}

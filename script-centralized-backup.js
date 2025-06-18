@@ -59,12 +59,6 @@ class ROFLFaucetCentralized {
             refreshBtn.addEventListener('click', () => this.loadGlobalStats());
         }
         
-        // Logout button
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => this.handleLogout());
-        }
-        
         // Captcha callbacks
         window.hcaptchaCallback = (token) => {
             console.log('hCaptcha solved');
@@ -138,15 +132,21 @@ class ROFLFaucetCentralized {
         }
         
         try {
-            // For simplified authentication, just check if user exists in database
-            const response = await fetch(`${this.dbApiBase}/api/users/${encodeURIComponent(email)}`);
+            // Use simplified authentication with centralized database
+            const response = await fetch(`${this.dbApiBase}/api/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+            
+            const data = await response.json();
             
             if (response.ok) {
-                const userData = await response.json();
-                
-                // Store user session (simplified - no password verification in this version)
+                // Store user session
                 localStorage.setItem('roflfaucet_userEmail', email);
-                localStorage.setItem('roflfaucet_sessionToken', 'centralized_token');
+                localStorage.setItem('roflfaucet_sessionToken', data.sessionToken || 'demo_token');
                 
                 this.userEmail = email;
                 this.hideAuthModal();
@@ -154,7 +154,7 @@ class ROFLFaucetCentralized {
                 this.showUserInterface();
                 this.showMessage('Successfully signed in!', 'success');
             } else {
-                this.showAuthError('User not found. Please sign up first.');
+                this.showAuthError(data.error || 'Login failed');
             }
         } catch (error) {
             console.error('Login error:', error);
@@ -403,27 +403,6 @@ class ROFLFaucetCentralized {
         }
     }
     
-    handleLogout() {
-        // Clear all session data
-        localStorage.removeItem('roflfaucet_userEmail');
-        localStorage.removeItem('roflfaucet_sessionToken');
-        
-        // Reset user state
-        this.userEmail = null;
-        this.userProfile = null;
-        this.userStats = {
-            balance: 0,
-            totalClaims: 0,
-            canClaim: true,
-            nextClaimTime: null
-        };
-        
-        // Show welcome interface
-        this.showWelcomeInterface();
-        this.showMessage('Successfully logged out!', 'info');
-        console.log('User logged out successfully');
-    }
-    
     // UI Methods
     
     showWelcomeInterface() {
@@ -511,6 +490,16 @@ class ROFLFaucetCentralized {
         const fallbackElement = document.getElementById('captcha-fallback');
         if (fallbackElement) {
             fallbackElement.style.display = 'block';
+            
+            // Set up test captcha button
+            const testCaptchaBtn = document.getElementById('simulate-captcha-btn');
+            if (testCaptchaBtn) {
+                testCaptchaBtn.addEventListener('click', () => {
+                    console.log('Test captcha button clicked');
+                    this.captchaToken = 'test_token_' + Date.now();
+                    this.updateCaptchaSubmitButton();
+                });
+            }
         }
     }
     

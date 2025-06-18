@@ -210,8 +210,8 @@
                                 </div>
                             </div>
                             
-                            <!-- User Section -->
-                            <div id="user-section" class="user-section" style="display: none;">
+            <!-- User Interface -->
+            <div id="user-interface" class="user-section" style="display: none;">
                                 <div class="user-welcome">
                                     <h3>Welcome back, <span id="username-display">User</span>! 👋</h3>
                                 </div>
@@ -235,8 +235,8 @@
                                         <!-- hCaptcha widget loads here -->
                                         <div class="h-captcha" 
                                              data-sitekey="a01ce33e-fce6-44ee-b2d4-2dee7014ed3c"
-                                             data-callback="onCaptchaSuccess"
-                                             data-error-callback="onCaptchaError">
+                                         data-callback="hcaptchaCallback"
+                                         data-expired-callback="hcaptchaExpired">
                                         </div>
                                         
                                         <!-- Fallback test button for development -->
@@ -270,9 +270,17 @@
                                     </div>
                                 </div>
                                 
-                                <button id="refresh-stats" class="refresh-button">
-                                    🔄 Refresh Stats
-                                </button>
+                                <div class="user-actions">
+                                    <button id="refresh-stats" class="refresh-button">
+                                        🔄 Refresh Stats
+                                    </button>
+                                    <button id="logout-btn" class="logout-button">
+                                        🚪 Logout
+                                    </button>
+                                    <button id="clear-data-btn" class="clear-data-button" title="⚠️ Development only - clears all data">
+                                        🗑️ Clear All Data
+                                    </button>
+                                </div>
                             </div>
                             
                             <!-- Message Display -->
@@ -661,8 +669,7 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="oauth-client.js?v=20250617"></script>
-    <script src="script.js?v=20250617"></script>
+    <script src="script.js?v=20250618"></script>
     
     <!-- Beta Testing Functions -->
     <script>

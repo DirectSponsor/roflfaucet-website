@@ -59,12 +59,6 @@ class ROFLFaucetCentralized {
             refreshBtn.addEventListener('click', () => this.loadGlobalStats());
         }
         
-        // Logout button
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => this.handleLogout());
-        }
-        
         // Captcha callbacks
         window.hcaptchaCallback = (token) => {
             console.log('hCaptcha solved');
@@ -401,27 +395,6 @@ class ROFLFaucetCentralized {
             // User might already exist, which is fine
             console.log('User creation attempted (may already exist)');
         }
-    }
-    
-    handleLogout() {
-        // Clear all session data
-        localStorage.removeItem('roflfaucet_userEmail');
-        localStorage.removeItem('roflfaucet_sessionToken');
-        
-        // Reset user state
-        this.userEmail = null;
-        this.userProfile = null;
-        this.userStats = {
-            balance: 0,
-            totalClaims: 0,
-            canClaim: true,
-            nextClaimTime: null
-        };
-        
-        // Show welcome interface
-        this.showWelcomeInterface();
-        this.showMessage('Successfully logged out!', 'info');
-        console.log('User logged out successfully');
     }
     
     // UI Methods

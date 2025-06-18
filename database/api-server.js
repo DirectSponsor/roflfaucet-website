@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.DB_API_PORT || 3001;
+const PORT = process.env.DB_API_PORT || 3002;
 
 // Middleware
 app.use(cors());
@@ -47,6 +47,16 @@ async function getUserByUsername(username) {
     return rows[0] || null;
 }
 
+async function getUserByEmail(email) {
+    const [rows] = await pool.execute(`
+        SELECT u.*, b.* 
+        FROM users u 
+        LEFT JOIN balances b ON u.id = b.user_id 
+        WHERE u.email = ?
+    `, [email]);
+    return rows[0] || null;
+}
+
 async function createUserBalance(userId) {
     await pool.execute(`
         INSERT INTO balances (user_id) VALUES (?)
@@ -67,10 +77,20 @@ app.get('/health', (req, res) => {
 
 // User Management Routes
 
-// Get user by ID
-app.get('/api/users/:id', async (req, res) => {
+// Get user by identifier (ID, email, or username)
+app.get('/api/users/:identifier', async (req, res) => {
     try {
-        const user = await getUserById(req.params.id);
+        const identifier = req.params.identifier;
+        let user;
+        
+        // Check if identifier looks like an email
+        if (identifier.includes('@')) {
+            user = await getUserByEmail(identifier);
+        } else {
+            // Try as ID first, then as username
+            user = await getUserById(identifier) || await getUserByUsername(identifier);
+        }
+        
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -87,21 +107,36 @@ app.get('/api/users/:id', async (req, res) => {
 
 // Create new user
 app.post('/api/users', async (req, res) => {
-    const { username, email, password, display_name } = req.body;
+    const { username, email, password, display_name, source } = req.body;
     
-    if (!username || !email || !password) {
-        return res.status(400).json({ error: 'Username, email, and password are required' });
+    // Allow creation without password for simplified signups
+    if (!email) {
+        return res.status(400).json({ error: 'Email is required' });
+    }
+    
+    // Check if user already exists
+    try {
+        const existingUser = await getUserByEmail(email);
+        if (existingUser) {
+            delete existingUser.password_hash;
+            return res.json({ 
+                message: 'User already exists',
+                user: existingUser 
+            });
+        }
+    } catch (error) {
+        console.error('Error checking existing user:', error);
     }
     
     try {
-        // Hash password
-        const password_hash = await bcrypt.hash(password, 10);
+        // Hash password if provided
+        const password_hash = password ? await bcrypt.hash(password, 10) : null;
         
         // Insert user
         const [result] = await pool.execute(`
             INSERT INTO users (username, email, password_hash, display_name)
             VALUES (?, ?, ?, ?)
-        `, [username, email, password_hash, display_name || username]);
+        `, [username || email.split('@')[0], email, password_hash, display_name || username || email.split('@')[0]]);
         
         const userId = result.insertId;
         
@@ -120,6 +155,125 @@ app.post('/api/users', async (req, res) => {
         } else {
             res.status(500).json({ error: 'Database error' });
         }
+    }
+});
+
+// Get user balances by identifier (email or ID)
+app.get('/api/balances/:identifier', async (req, res) => {
+    try {
+        const identifier = req.params.identifier;
+        let user;
+        
+        // Check if identifier looks like an email
+        if (identifier.includes('@')) {
+            user = await getUserByEmail(identifier);
+        } else {
+            user = await getUserById(identifier);
+        }
+        
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        // Return balance information
+        res.json({
+            user_id: user.id,
+            email: user.email,
+            username: user.username,
+            useless_coin_balance: user.useless_coin_balance || 0,
+            roflfaucet_tokens: user.roflfaucet_tokens || 0,
+            clickforcharity_tokens: user.clickforcharity_tokens || 0,
+            total_earned: user.total_earned || 0,
+            total_claims: user.total_claims || 0
+        });
+    } catch (error) {
+        console.error('Error fetching balances:', error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+// Update user balances by identifier (email or ID) - for token claims
+app.post('/api/balances/:identifier', async (req, res) => {
+    try {
+        const identifier = req.params.identifier;
+        const { currency, amount, transaction_type, source } = req.body;
+        
+        if (!currency || !amount) {
+            return res.status(400).json({ error: 'Currency and amount are required' });
+        }
+        
+        let user;
+        
+        // Check if identifier looks like an email
+        if (identifier.includes('@')) {
+            user = await getUserByEmail(identifier);
+        } else {
+            user = await getUserById(identifier);
+        }
+        
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        // Ensure balance record exists
+        await createUserBalance(user.id);
+        
+        // Update the specific currency balance
+        let updateQuery, updateParams;
+        
+        if (currency === 'useless_coin') {
+            updateQuery = `
+                UPDATE balances 
+                SET 
+                    useless_coin_balance = useless_coin_balance + ?,
+                    total_earned = total_earned + ?,
+                    total_claims = total_claims + 1
+                WHERE user_id = ?
+            `;
+            updateParams = [amount, amount, user.id];
+        } else if (currency === 'roflfaucet_tokens') {
+            updateQuery = `
+                UPDATE balances 
+                SET 
+                    roflfaucet_tokens = roflfaucet_tokens + ?,
+                    total_earned = total_earned + ?
+                WHERE user_id = ?
+            `;
+            updateParams = [amount, amount, user.id];
+        } else {
+            return res.status(400).json({ error: 'Unsupported currency' });
+        }
+        
+        await pool.execute(updateQuery, updateParams);
+        
+        // Record the activity
+        await pool.execute(`
+            INSERT INTO activities (user_id, site_id, activity_type, tokens_awarded, coins_awarded, description, metadata)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `, [
+            user.id, 
+            source || 'roflfaucet', 
+            transaction_type || 'claim', 
+            currency === 'roflfaucet_tokens' ? amount : 0,
+            currency === 'useless_coin' ? amount : 0,
+            `${currency} claim via ${source || 'roflfaucet'}`,
+            JSON.stringify({ currency, amount, transaction_type, source })
+        ]);
+        
+        // Get updated balance
+        const updatedUser = await getUserById(user.id);
+        
+        res.json({
+            success: true,
+            new_balance: currency === 'useless_coin' ? updatedUser.useless_coin_balance : updatedUser.roflfaucet_tokens,
+            useless_coin_balance: updatedUser.useless_coin_balance || 0,
+            roflfaucet_tokens: updatedUser.roflfaucet_tokens || 0,
+            total_earned: updatedUser.total_earned || 0,
+            total_claims: updatedUser.total_claims || 0
+        });
+    } catch (error) {
+        console.error('Error updating balances:', error);
+        res.status(500).json({ error: 'Database error' });
     }
 });
 
@@ -312,6 +466,51 @@ app.get('/api/leaderboard', async (req, res) => {
 });
 
 // Stats Routes
+
+// Get global statistics (for frontend dashboard)
+app.get('/api/stats', async (req, res) => {
+    try {
+        // Get total users
+        const [userCount] = await pool.execute(`
+            SELECT COUNT(*) as total_users FROM users WHERE is_active = TRUE
+        `);
+        
+        // Get total claims across all sites
+        const [claimCount] = await pool.execute(`
+            SELECT COUNT(*) as total_claims FROM activities WHERE activity_type IN ('claim', 'faucet_claim')
+        `);
+        
+        // Get total tokens distributed
+        const [tokenStats] = await pool.execute(`
+            SELECT 
+                SUM(tokens_awarded) as total_tokens_distributed,
+                SUM(coins_awarded) as total_coins_distributed
+            FROM activities
+        `);
+        
+        // Get total balances
+        const [balanceStats] = await pool.execute(`
+            SELECT 
+                SUM(useless_coin_balance) as total_useless_coins,
+                SUM(roflfaucet_tokens) as total_roflfaucet_tokens,
+                SUM(clickforcharity_tokens) as total_clickforcharity_tokens
+            FROM balances
+        `);
+        
+        res.json({
+            total_users: userCount[0].total_users || 0,
+            total_claims: claimCount[0].total_claims || 0,
+            total_tokens_distributed: (tokenStats[0].total_tokens_distributed || 0) + (tokenStats[0].total_coins_distributed || 0),
+            total_useless_coins: balanceStats[0].total_useless_coins || 0,
+            total_roflfaucet_tokens: balanceStats[0].total_roflfaucet_tokens || 0,
+            total_clickforcharity_tokens: balanceStats[0].total_clickforcharity_tokens || 0,
+            last_updated: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error fetching global stats:', error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
 
 // Get site statistics
 app.get('/api/stats/:site_id', async (req, res) => {

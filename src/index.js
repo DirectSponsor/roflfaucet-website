@@ -8,6 +8,14 @@ const AutoImageManager = require('./imageManager');
 const EnhancedMediaManager = require('./mediaManager');
 require('dotenv').config();
 
+// OAuth configuration - must be defined before use
+const OAUTH_CONFIG = {
+    clientId: 'roflfaucet',
+    clientSecret: 'a3aad8f798c2e668791d08de9d2eaeec91fd6b108c7d5a8797eb9358d95bed98', // Must match DirectSponsor config
+    directSponsorBaseUrl: 'https://auth.directsponsor.org',
+    redirectUri: process.env.SITE_URL + '/auth/callback' || 'http://localhost:3000/auth/callback'
+};
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -448,13 +456,7 @@ app.post('/api/media/refresh', async (req, res) => {
 // OAuth Integration with DirectSponsor Authentication
 // =============================================================================
 
-// OAuth configuration
-const OAUTH_CONFIG = {
-    clientId: 'roflfaucet',
-    clientSecret: 'a3aad8f798c2e668791d08de9d2eaeec91fd6b108c7d5a8797eb9358d95bed98', // Must match DirectSponsor config
-    directSponsorBaseUrl: 'https://auth.directsponsor.org',
-    redirectUri: process.env.SITE_URL + '/auth/callback' || 'http://localhost:3000/auth/callback'
-};
+// OAuth configuration moved to top of file
 
 // Token exchange endpoint
 app.post('/api/oauth/token', async (req, res) => {

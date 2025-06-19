@@ -106,19 +106,18 @@
             if (state !== expectedState) {
                 console.error('❌ State parameter mismatch');
                 showError('Security verification failed. Please try again.');
-                return;
+            } else {
+                // Store the code and redirect back to main page
+                localStorage.setItem('oauth_code', code);
+                localStorage.removeItem('oauth_state');
+                
+                showSuccess();
+                
+                // Redirect back to main page after a short delay
+                setTimeout(() => {
+                    window.location.href = '/?code=' + encodeURIComponent(code);
+                }, 2000);
             }
-            
-            // Store the code and redirect back to main page
-            localStorage.setItem('oauth_code', code);
-            localStorage.removeItem('oauth_state');
-            
-            showSuccess();
-            
-            // Redirect back to main page after a short delay
-            setTimeout(() => {
-                window.location.href = '/?code=' + encodeURIComponent(code);
-            }, 2000);
             
         } else {
             console.error('❌ No authorization code received');

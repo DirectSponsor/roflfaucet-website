@@ -1,6 +1,17 @@
-// ROFLFaucet - Frontend Only with Centralized OAuth
+// ROFLFaucet - Frontend Only with Centralized OAuth - DEBUG VERSION v1.1
 // Pure frontend solution that talks to auth.directsponsor.org
-console.log('🎲 ROFLFaucet Centralized Auth loading...');
+console.log('🎲 ROFLFaucet Centralized Auth loading... DEBUG VERSION v1.1');
+
+// Immediate debug indicator
+setTimeout(() => {
+    const indicator = document.createElement('div');
+    indicator.innerHTML = '🔧 DEBUG v1.1 LOADED';
+    indicator.style.cssText = `
+        position: fixed; top: 5px; left: 5px; background: lime; color: black;
+        padding: 5px; font-weight: bold; z-index: 99999; border: 2px solid black;
+    `;
+    document.body.appendChild(indicator);
+}, 1000);
 
 class ROFLFaucetCentralized {
     constructor() {
@@ -71,11 +82,62 @@ class ROFLFaucetCentralized {
             this.updateCaptchaSubmitButton();
         };
     }
-
+    
+    // Debug functions
+    addDebugInfo() {
+        const debugDiv = document.getElementById('debug-info') || this.createDebugDiv();
+        const urlParams = new URLSearchParams(window.location.search);
+        const storedToken = localStorage.getItem('roflfaucet_access_token');
+        const storedRefresh = localStorage.getItem('roflfaucet_refresh_token');
+        const oauthState = localStorage.getItem('oauth_state');
+        
+        debugDiv.innerHTML = `
+            <h4>🔧 Debug Info</h4>
+            <p><strong>URL Code:</strong> ${urlParams.get('code') ? urlParams.get('code').substring(0, 8) + '...' : 'None'}</p>
+            <p><strong>Access Token:</strong> ${storedToken ? storedToken.substring(0, 8) + '...' : 'None'}</p>
+            <p><strong>Refresh Token:</strong> ${storedRefresh ? storedRefresh.substring(0, 8) + '...' : 'None'}</p>
+            <p><strong>OAuth State:</strong> ${oauthState || 'None'}</p>
+            <p><strong>User Profile:</strong> ${this.userProfile ? this.userProfile.username : 'Not loaded'}</p>
+        `;
+    }
+    
+    createDebugDiv() {
+        const debugDiv = document.createElement('div');
+        debugDiv.id = 'debug-info';
+        debugDiv.style.cssText = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #ff0000;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            max-width: 350px;
+            z-index: 99999;
+            border: 3px solid yellow;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        `;
+        document.body.appendChild(debugDiv);
+        return debugDiv;
+    }
+    
+    showDebugMessage(message) {
+        const debugDiv = document.getElementById('debug-info');
+        if (debugDiv) {
+            const msgP = document.createElement('p');
+            msgP.innerHTML = `<strong style="color: yellow;">${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            debugDiv.appendChild(msgP);
+        }
+    }
+    
     // OAuth Authentication Flow
     
     checkAuthState() {
         console.log('🔍 Checking authentication state...');
+        
+        // Add debug info to page
+        this.addDebugInfo();
         
         // Check if we're on the callback page
         const urlParams = new URLSearchParams(window.location.search);
@@ -83,6 +145,7 @@ class ROFLFaucetCentralized {
         
         if (authCode) {
             console.log('📨 Auth code received, exchanging for token...');
+            this.showDebugMessage(`Auth code received: ${authCode.substring(0, 8)}...`);
             this.exchangeCodeForToken(authCode);
             return;
         }
@@ -91,9 +154,11 @@ class ROFLFaucetCentralized {
         this.accessToken = localStorage.getItem('roflfaucet_access_token');
         if (this.accessToken) {
             console.log('🔑 Found existing access token');
+            this.showDebugMessage(`Found stored token: ${this.accessToken.substring(0, 8)}...`);
             this.loadUserProfile();
         } else {
             console.log('❌ No authentication found, showing welcome');
+            this.showDebugMessage('No stored authentication found');
             this.showWelcomeInterface();
         }
     }
@@ -120,6 +185,7 @@ class ROFLFaucetCentralized {
     async exchangeCodeForToken(code) {
         try {
             console.log('🔄 Exchanging authorization code for access token...');
+            this.showDebugMessage('Starting token exchange...');
             
             const response = await fetch(`${this.authApiBase}/oauth/token`, {
                 method: 'POST',
@@ -134,6 +200,8 @@ class ROFLFaucetCentralized {
                 })
             });
             
+            this.showDebugMessage(`Token response: ${response.status}`);
+            
             if (response.ok) {
                 const tokenData = await response.json();
                 
@@ -145,19 +213,23 @@ class ROFLFaucetCentralized {
                 }
                 
                 console.log('✅ Token exchange successful');
+                this.showDebugMessage('✅ Token exchange successful!');
                 
                 // Clean up URL and load user profile
                 window.history.replaceState({}, document.title, window.location.pathname);
                 await this.loadUserProfile();
                 
             } else {
-                console.error('❌ Token exchange failed:', response.status);
+                const errorText = await response.text();
+                console.error('❌ Token exchange failed:', response.status, errorText);
+                this.showDebugMessage(`❌ Token failed: ${response.status} - ${errorText}`);
                 this.showMessage('Authentication failed. Please try again.', 'error');
                 this.showWelcomeInterface();
             }
             
         } catch (error) {
             console.error('💥 Token exchange error:', error);
+            this.showDebugMessage(`💥 Exchange error: ${error.message}`);
             this.showMessage('Connection error during login. Please try again.', 'error');
             this.showWelcomeInterface();
         }
@@ -248,7 +320,7 @@ class ROFLFaucetCentralized {
         }
     }
     
-    // User stats removed - will be handled by users.directsponsor.org later
+    // User stats removed - will be handled by data.directsponsor.org later
     
     canUserClaim(lastClaimAt) {
         if (!lastClaimAt) return true;
@@ -272,7 +344,7 @@ class ROFLFaucetCentralized {
     // Claim Token Logic
     
     async handleClaim() {
-        // Claims disabled for OAuth testing - will be handled by users.directsponsor.org later
+        // Claims disabled for OAuth testing - will be handled by data.directsponsor.org later
         this.showMessage('OAuth test mode: Claims will be implemented with user data system', 'info');
         console.log('🧪 Claims disabled - OAuth testing mode');
     }
@@ -291,12 +363,32 @@ class ROFLFaucetCentralized {
     
     showUserInterface() {
         const welcomeSection = document.getElementById('welcome-section');
-        const userSection = document.getElementById('user-section');
+        const userSection = document.getElementById('user-interface');
         
         if (welcomeSection) welcomeSection.style.display = 'none';
         if (userSection) userSection.style.display = 'block';
         
+        // Load mock user data for demonstration
+        this.loadMockUserData();
+        this.updateUI();
+        
         console.log('👤 Showing user interface');
+    }
+    
+    loadMockUserData() {
+        // Load or generate mock user data for testing
+        const savedBalance = localStorage.getItem('roflfaucet_mock_balance');
+        const savedClaims = localStorage.getItem('roflfaucet_mock_claims');
+        
+        this.userStats = {
+            balance: savedBalance ? parseFloat(savedBalance) : 25.0,
+            coinBalance: savedBalance ? parseFloat(savedBalance) : 25.0,
+            totalClaims: savedClaims ? parseInt(savedClaims) : 5,
+            canClaim: true,
+            nextClaimTime: null
+        };
+        
+        console.log('📊 Mock user data loaded:', this.userStats);
     }
     
     updateUI() {
@@ -444,7 +536,7 @@ class ROFLFaucetCentralized {
         // Update global stats every 30 seconds
         setInterval(() => {
             this.loadGlobalStats();
-            // User stats updates will be handled by users.directsponsor.org later
+            // User stats updates will be handled by data.directsponsor.org later
         }, 30000);
     }
 }

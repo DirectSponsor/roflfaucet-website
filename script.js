@@ -17,12 +17,14 @@ class ROFLFaucetCentralized {
     constructor() {
         // Auth server configuration - back to production with direct paths
         this.authApiBase = 'https://auth.directsponsor.org';
+        this.userDataApiBase = 'https://data.directsponsor.org/api';
         this.clientId = 'roflfaucet';
         this.redirectUri = window.location.origin + '/auth/callback.html';
         
         // User state
         this.accessToken = null;
         this.userProfile = null;
+        this.dashboardData = null;
         this.userStats = {
             balance: 0,
             coinBalance: 0,
@@ -254,9 +256,10 @@ class ROFLFaucetCentralized {
                 this.userProfile = await response.json();
                 console.log('✅ User profile loaded:', this.userProfile.username);
                 
-                // OAuth test successful! Show user interface without user data
+                // OAuth successful! Load real user dashboard data
+                await this.loadUserDashboard();
                 this.showUserInterface();
-                this.showMessage(`Welcome back, ${this.userProfile.username}! OAuth login successful.`, 'success');
+                this.showMessage(`Welcome back, ${this.userProfile.username}! Loading your data...`, 'success');
                 
             } else if (response.status === 401) {
                 console.log('🔄 Access token expired, attempting refresh...');
@@ -320,7 +323,123 @@ class ROFLFaucetCentralized {
         }
     }
     
-    // User stats removed - will be handled by data.directsponsor.org later
+    // User Dashboard Integration
+    
+    async loadUserDashboard() {
+        if (!this.accessToken) {
+            console.log('❌ No access token for dashboard');
+            return;
+        }
+        
+        try {
+            console.log('📊 Loading user dashboard data...');
+            
+            const response = await fetch(`${this.userDataApiBase}/dashboard?site_id=roflfaucet`, {
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`
+                }
+            });
+            
+            if (response.ok) {
+                this.dashboardData = await response.json();
+                console.log('✅ Dashboard data loaded:', this.dashboardData);
+                
+                // Update user stats with real data
+                this.userStats = {
+                    balance: parseFloat(this.dashboardData.dashboard.balance.useless_coins),
+                    coinBalance: parseFloat(this.dashboardData.dashboard.balance.useless_coins),
+                    totalClaims: parseInt(this.dashboardData.dashboard.user_profile.total_claims),
+                    canClaim: this.dashboardData.dashboard.claim_statuses.roflfaucet.can_claim,
+                    nextClaimTime: this.dashboardData.dashboard.claim_statuses.roflfaucet.next_claim
+                };
+                
+                this.showMessage(`Welcome back! You have ${this.userStats.balance} UselessCoins`, 'success');
+                this.updateUI();
+                
+            } else if (response.status === 401) {
+                console.log('🔄 Dashboard auth failed, refreshing token...');
+                await this.refreshAccessToken();
+            } else {
+                console.error('❌ Failed to load dashboard:', response.status);
+                // Fall back to mock data
+                this.loadMockUserData();
+            }
+            
+        } catch (error) {
+            console.error('💥 Dashboard loading error:', error);
+            this.showMessage('Using local mode - dashboard unavailable', 'warning');
+            // Fall back to mock data
+            this.loadMockUserData();
+        }
+    }
+    
+    async processFaucetClaim() {
+        if (!this.accessToken) {
+            this.showMessage('Please log in first', 'error');
+            return;
+        }
+        
+        if (!this.captchaToken) {
+            this.showMessage('Please complete the captcha first', 'error');
+            return;
+        }
+        
+        try {
+            console.log('🎲 Processing faucet claim...');
+            this.showMessage('Processing your claim...', 'info');
+            
+            const response = await fetch(`${this.userDataApiBase}/balance/claim`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    site_id: 'roflfaucet',
+                    captcha_token: this.captchaToken
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                console.log('✅ Claim successful!', result);
+                
+                // Reset captcha
+                this.captchaToken = null;
+                if (window.hcaptcha) {
+                    window.hcaptcha.reset();
+                }
+                
+                // Show success message
+                const coinsEarned = result.rewards.useless_coins;
+                this.showMessage(`🎉 Claim successful! You earned ${coinsEarned} UselessCoins!`, 'success');
+                
+                // Reload dashboard to get updated balance
+                await this.loadUserDashboard();
+                
+            } else {
+                console.error('❌ Claim failed:', result);
+                this.showMessage(result.error || 'Claim failed. Please try again.', 'error');
+                
+                // Reset captcha on error
+                this.captchaToken = null;
+                if (window.hcaptcha) {
+                    window.hcaptcha.reset();
+                }
+            }
+            
+        } catch (error) {
+            console.error('💥 Claim processing error:', error);
+            this.showMessage('Network error during claim. Please try again.', 'error');
+            
+            // Reset captcha on error
+            this.captchaToken = null;
+            if (window.hcaptcha) {
+                window.hcaptcha.reset();
+            }
+        }
+    }
     
     canUserClaim(lastClaimAt) {
         if (!lastClaimAt) return true;
@@ -344,9 +463,17 @@ class ROFLFaucetCentralized {
     // Claim Token Logic
     
     async handleClaim() {
-        // Claims disabled for OAuth testing - will be handled by data.directsponsor.org later
-        this.showMessage('OAuth test mode: Claims will be implemented with user data system', 'info');
-        console.log('🧪 Claims disabled - OAuth testing mode');
+        console.log('🎲 Handle claim called');
+        
+        if (!this.userStats.canClaim) {
+            const nextClaim = new Date(this.userStats.nextClaimTime);
+            const timeLeft = Math.ceil((nextClaim - new Date()) / 1000 / 60);
+            this.showMessage(`You can claim again in ${timeLeft} minutes`, 'warning');
+            return;
+        }
+        
+        // Process the real faucet claim
+        await this.processFaucetClaim();
     }
     
     // UI Management
@@ -376,19 +503,19 @@ class ROFLFaucetCentralized {
     }
     
     loadMockUserData() {
-        // Load or generate mock user data for testing
+        // Load or generate mock user data for testing (fallback only)
         const savedBalance = localStorage.getItem('roflfaucet_mock_balance');
         const savedClaims = localStorage.getItem('roflfaucet_mock_claims');
         
         this.userStats = {
-            balance: savedBalance ? parseFloat(savedBalance) : 25.0,
-            coinBalance: savedBalance ? parseFloat(savedBalance) : 25.0,
-            totalClaims: savedClaims ? parseInt(savedClaims) : 5,
+            balance: savedBalance ? parseFloat(savedBalance) : 0.0,
+            coinBalance: savedBalance ? parseFloat(savedBalance) : 0.0,
+            totalClaims: savedClaims ? parseInt(savedClaims) : 0,
             canClaim: true,
             nextClaimTime: null
         };
         
-        console.log('📊 Mock user data loaded:', this.userStats);
+        console.log('📊 Mock user data loaded (fallback mode):', this.userStats);
     }
     
     updateUI() {

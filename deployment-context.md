@@ -1,14 +1,15 @@
 # ROFLFaucet Deployment Context
 
 ## 🎯 **Project Overview**
-ROFLFaucet - Cryptocurrency faucet with video content integration. Users watch videos to earn crypto rewards.
+ROFLFaucet - Cryptocurrency faucet with User Data API integration. Users complete captcha to earn UselessCoins that work across all network sites.
 
 ## 🖥️ **Deployment Target**
 - **Server**: ES7 (Production Server)
 - **SSH Alias**: `es7-production`
-- **IP**: 89.116.173.191
+- **IP**: 89.116.44.206 (Updated)
 - **Domain**: https://roflfaucet.com
 - **Path**: `/root/roflfaucet`
+- **Architecture**: Static site with OAuth + User Data API
 
 ## 🔧 **Deployment Script**
 - **Script**: `deploy-roflfaucet.sh`
@@ -19,27 +20,27 @@ ROFLFaucet - Cryptocurrency faucet with video content integration. Users watch v
 1. Git status check and auto-commit
 2. Create timestamped backup on server
 3. Clean old backups (keep 5 most recent)
-4. rsync files to server (excludes node_modules, .git, logs)
-5. Install dependencies: `npm install --omit=dev`
-6. Restart application: `pm2 restart roflfaucet`
-7. Health check via API
+4. rsync files to server (excludes .git, logs, backups)
+5. No npm install (static site)
+6. No PM2 restart (static files served by nginx)
+7. Health check via HTTPS
 
 ## 🔍 **Health Check URLs**
 - Main site: https://roflfaucet.com
-- Health API: https://roflfaucet.com/api/health
-- Video API: https://roflfaucet.com/api/video/random
+- User Data API: https://data.directsponsor.org/api/dashboard?site_id=roflfaucet
+- OAuth API: https://auth.directsponsor.org/oauth/userinfo
 
 ## ⚙️ **Runtime Environment**
-- **Technology**: Node.js application
-- **Process Manager**: PM2
-- **Service Name**: `roflfaucet`
-- **Dependencies**: npm packages (production only)
+- **Technology**: Static HTML/CSS/JS site
+- **Web Server**: nginx (serves static files)
+- **No backend process**: Simplified from Node.js
+- **APIs**: Integrated with auth.directsponsor.org and data.directsponsor.org
 
 ## 📁 **File Exclusions**
-- `node_modules/` (rebuilt on server)
 - `.git/` (not needed on production)
 - `*.log` (server generates its own)
 - `deploy.sh` (not needed on server)
+- `backup_*` (temporary backup files)
 
 ## 🔐 **Security**
 - Uses `warp` SSH key via `es7-production` alias
@@ -47,9 +48,18 @@ ROFLFaucet - Cryptocurrency faucet with video content integration. Users watch v
 - Production npm dependencies only
 
 ## 🚨 **Common Issues**
-- npm install failures → Check Node.js version
-- PM2 restart issues → Check process status with `pm2 status`
+- 404 errors → Check nginx config and file permissions
+- OAuth login failures → Verify auth.directsponsor.org connectivity
+- API integration issues → Check data.directsponsor.org accessibility
 - SSL/domain issues → Verify DNS and certificate
+
+## ✅ **Current Working Features (June 19, 2025 - Evening)**
+- Real OAuth authentication with auth.directsponsor.org
+- Live faucet claims earning 5 UselessCoins per claim  
+- 1-hour cooldown system with real-time tracking
+- Cross-site balance system (coins work on all network sites)
+- User dashboard showing balance, claim status, and activity
+- User preferences system (global + site-specific)
 
 ## 📚 **Related Documentation**
 - Server docs: `/docs/docs/servers/es7-listmonk.md`

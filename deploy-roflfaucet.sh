@@ -11,8 +11,7 @@ if [[ "$1" == "--auto" ]]; then
     echo "🤖 Running in automatic mode"
 fi
 
-VPS_HOST="root@89.116.44.206"
-VPS_PASSWORD="OqzfbpLzJNq3llwI"
+VPS_HOST="es7-production"  # Uses warp key via SSH alias
 APP_DIR="/root/roflfaucet"
 BACKUP_DIR="/root/backups/roflfaucet"
 MAX_BACKUPS=5
@@ -54,12 +53,12 @@ TIMESTAMP=$(date '+%Y%m%d_%H%M%S')
 BACKUP_NAME="roflfaucet_backup_${TIMESTAMP}"
 
 echo "📦 Creating backup: $BACKUP_NAME"
-sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no $VPS_HOST "mkdir -p $BACKUP_DIR && cp -r $APP_DIR $BACKUP_DIR/$BACKUP_NAME 2>/dev/null || echo 'Backup created'"
+ssh $VPS_HOST "mkdir -p $BACKUP_DIR && cp -r $APP_DIR $BACKUP_DIR/$BACKUP_NAME 2>/dev/null || echo 'Backup created'"
 echo "✅ Backup created: $BACKUP_DIR/$BACKUP_NAME"
 
 # Clean old backups
 echo "🧹 Cleaning old backups (keeping last $MAX_BACKUPS)..."
-sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no $VPS_HOST "cd $BACKUP_DIR && ls -1t | tail -n +$((MAX_BACKUPS + 1)) | xargs -r rm -rf"
+ssh $VPS_HOST "cd $BACKUP_DIR && ls -1t | tail -n +$((MAX_BACKUPS + 1)) | xargs -r rm -rf"
 
 # Step 3: Sync files to VPS
 echo "📦 Syncing files to VPS..."
@@ -68,14 +67,13 @@ rsync -avz --delete \
   --exclude '.git/' \
   --exclude '*.log' \
   --exclude 'deploy.sh' \
-  . $VPS_HOST:$APP_DIR/ \
-  --rsh="sshpass -p '$VPS_PASSWORD' ssh -o StrictHostKeyChecking=no"
+  . $VPS_HOST:$APP_DIR/
 
 echo "✅ Files synced successfully!"
 
 # Step 2: Install dependencies and restart
 echo "🔧 Installing dependencies and restarting..."
-sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no $VPS_HOST << EOF
+ssh $VPS_HOST << EOF
 cd $APP_DIR
 npm install --omit=dev
 pm2 restart roflfaucet

@@ -1,46 +1,45 @@
-// ROFLFaucet Centralized Database JavaScript
-// This version uses the secure centralized database API directly
-console.log('ROFLFaucet Centralized script loading...');
+// ROFLFaucet - Frontend Only with Centralized OAuth
+// Pure frontend solution that talks to auth.directsponsor.org
+console.log('🎲 ROFLFaucet Centralized Auth loading...');
 
 class ROFLFaucetCentralized {
     constructor() {
-        // Configuration for centralized database API
-        this.dbApiBase = 'http://auth.directsponsor.org:3002';
+        // Auth server configuration - back to production with direct paths
         this.authApiBase = 'https://auth.directsponsor.org';
+        this.clientId = 'roflfaucet';
+        this.redirectUri = window.location.origin + '/auth/callback.html';
         
         // User state
-        this.userEmail = null;
+        this.accessToken = null;
         this.userProfile = null;
         this.userStats = {
             balance: 0,
+            coinBalance: 0,
             totalClaims: 0,
             canClaim: true,
             nextClaimTime: null
         };
         this.captchaToken = null;
         
-        console.log('ROFLFaucet Centralized initialized');
+        console.log('🔧 ROFLFaucet Centralized initialized');
         this.init();
     }
 
     init() {
-        console.log('Initializing centralized version...');
+        console.log('🚀 Initializing centralized auth version...');
         this.setupEventListeners();
-        this.checkUserSession();
+        this.checkAuthState();
         this.loadGlobalStats();
         this.startPeriodicUpdates();
     }
 
     setupEventListeners() {
-        console.log('Setting up event listeners...');
+        console.log('📡 Setting up event listeners...');
         
-        // Auth modal functionality
-        this.setupAuthModal();
-        
-        // Start claiming button
+        // Start claiming button (triggers OAuth login)
         const startClaimBtn = document.getElementById('start-claiming-btn');
         if (startClaimBtn) {
-            startClaimBtn.addEventListener('click', () => this.showAuthModal());
+            startClaimBtn.addEventListener('click', () => this.startOAuthLogin());
         }
         
         // Claim button
@@ -53,12 +52,6 @@ class ROFLFaucetCentralized {
             });
         }
         
-        // Refresh stats button
-        const refreshBtn = document.getElementById('refresh-stats');
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', () => this.loadGlobalStats());
-        }
-        
         // Logout button
         const logoutBtn = document.getElementById('logout-btn');
         if (logoutBtn) {
@@ -67,544 +60,290 @@ class ROFLFaucetCentralized {
         
         // Captcha callbacks
         window.hcaptchaCallback = (token) => {
-            console.log('hCaptcha solved');
+            console.log('✅ hCaptcha solved');
             this.captchaToken = token;
             this.updateCaptchaSubmitButton();
         };
         
         window.hcaptchaExpired = () => {
-            console.log('hCaptcha expired');
+            console.log('⏰ hCaptcha expired');
             this.captchaToken = null;
             this.updateCaptchaSubmitButton();
         };
     }
 
-    setupAuthModal() {
-        // Modal close button
-        const modalCloseBtn = document.getElementById('modal-close-btn');
-        if (modalCloseBtn) {
-            modalCloseBtn.addEventListener('click', () => this.hideAuthModal());
-        }
-        
-        // Tab switching
-        const loginTabBtn = document.getElementById('modal-login-tab-btn');
-        const signupTabBtn = document.getElementById('modal-signup-tab-btn');
-        
-        if (loginTabBtn) {
-            loginTabBtn.addEventListener('click', () => this.switchModalTab('login'));
-        }
-        if (signupTabBtn) {
-            signupTabBtn.addEventListener('click', () => this.switchModalTab('signup'));
-        }
-        
-        // Form submissions
-        const loginForm = document.getElementById('modal-login-form');
-        const signupForm = document.getElementById('modal-signup-form');
-        
-        if (loginForm) {
-            loginForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.handleLogin();
-            });
-        }
-        
-        if (signupForm) {
-            signupForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.handleSignup();
-            });
-        }
-        
-        // Click outside modal to close
-        const modalOverlay = document.getElementById('auth-modal-overlay');
-        if (modalOverlay) {
-            modalOverlay.addEventListener('click', (e) => {
-                if (e.target === modalOverlay) {
-                    this.hideAuthModal();
-                }
-            });
-        }
-    }
-
-    // Authentication Methods
+    // OAuth Authentication Flow
     
-    async handleLogin() {
-        const email = document.getElementById('modal-login-email').value;
-        const password = document.getElementById('modal-login-password').value;
+    checkAuthState() {
+        console.log('🔍 Checking authentication state...');
         
-        if (!email || !password) {
-            this.showAuthError('Please fill in all fields');
+        // Check if we're on the callback page
+        const urlParams = new URLSearchParams(window.location.search);
+        const authCode = urlParams.get('code');
+        
+        if (authCode) {
+            console.log('📨 Auth code received, exchanging for token...');
+            this.exchangeCodeForToken(authCode);
             return;
         }
         
+        // Check for existing session
+        this.accessToken = localStorage.getItem('roflfaucet_access_token');
+        if (this.accessToken) {
+            console.log('🔑 Found existing access token');
+            this.loadUserProfile();
+        } else {
+            console.log('❌ No authentication found, showing welcome');
+            this.showWelcomeInterface();
+        }
+    }
+    
+    startOAuthLogin() {
+        console.log('🔐 Starting OAuth login flow...');
+        
+        // Generate state parameter for security
+        const state = Math.random().toString(36).substring(2, 15);
+        localStorage.setItem('oauth_state', state);
+        
+        // Redirect to auth server using direct path to bypass rewrite issues
+        const authUrl = new URL(`${this.authApiBase}/authorize.php`);
+        authUrl.searchParams.append('response_type', 'code');
+        authUrl.searchParams.append('client_id', this.clientId);
+        authUrl.searchParams.append('redirect_uri', this.redirectUri);
+        authUrl.searchParams.append('scope', 'read write');
+        authUrl.searchParams.append('state', state);
+        
+        console.log('🌐 Redirecting to:', authUrl.toString());
+        window.location.href = authUrl.toString();
+    }
+    
+    async exchangeCodeForToken(code) {
         try {
-            // For simplified authentication, just check if user exists in database
-            const response = await fetch(`${this.dbApiBase}/api/users/${encodeURIComponent(email)}`);
+            console.log('🔄 Exchanging authorization code for access token...');
             
-            if (response.ok) {
-                const userData = await response.json();
-                
-                // Store user session (simplified - no password verification in this version)
-                localStorage.setItem('roflfaucet_userEmail', email);
-                localStorage.setItem('roflfaucet_sessionToken', 'centralized_token');
-                
-                this.userEmail = email;
-                this.hideAuthModal();
-                await this.loadUserProfile();
-                this.showUserInterface();
-                this.showMessage('Successfully signed in!', 'success');
-            } else {
-                this.showAuthError('User not found. Please sign up first.');
-            }
-        } catch (error) {
-            console.error('Login error:', error);
-            this.showAuthError('Connection error. Please try again.');
-        }
-    }
-    
-    async handleSignup() {
-        const username = document.getElementById('modal-signup-username').value;
-        const email = document.getElementById('modal-signup-email').value;
-        const password = document.getElementById('modal-signup-password').value;
-        const confirmPassword = document.getElementById('modal-signup-confirm').value;
-        
-        if (!username || !email || !password || !confirmPassword) {
-            this.showAuthError('Please fill in all fields');
-            return;
-        }
-        
-        if (password !== confirmPassword) {
-            this.showAuthError('Passwords do not match');
-            return;
-        }
-        
-        if (password.length < 8) {
-            this.showAuthError('Password must be at least 8 characters');
-            return;
-        }
-        
-        try {
-            // Create user in centralized database
-            const response = await fetch(`${this.dbApiBase}/api/users`, {
+            const response = await fetch(`${this.authApiBase}/oauth/token`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: JSON.stringify({
-                    email,
-                    username,
-                    display_name: username,
-                    source: 'roflfaucet_signup'
+                body: new URLSearchParams({
+                    grant_type: 'authorization_code',
+                    client_id: this.clientId,
+                    code: code,
+                    redirect_uri: this.redirectUri
                 })
             });
             
-            const data = await response.json();
-            
             if (response.ok) {
-                // Store user session
-                localStorage.setItem('roflfaucet_userEmail', email);
-                localStorage.setItem('roflfaucet_sessionToken', 'demo_token');
+                const tokenData = await response.json();
                 
-                this.userEmail = email;
-                this.hideAuthModal();
+                this.accessToken = tokenData.access_token;
+                localStorage.setItem('roflfaucet_access_token', this.accessToken);
+                
+                if (tokenData.refresh_token) {
+                    localStorage.setItem('roflfaucet_refresh_token', tokenData.refresh_token);
+                }
+                
+                console.log('✅ Token exchange successful');
+                
+                // Clean up URL and load user profile
+                window.history.replaceState({}, document.title, window.location.pathname);
                 await this.loadUserProfile();
-                this.showUserInterface();
-                this.showMessage('Account created successfully! Welcome to ROFLFaucet!', 'success');
+                
             } else {
-                this.showAuthError(data.error || 'Signup failed');
+                console.error('❌ Token exchange failed:', response.status);
+                this.showMessage('Authentication failed. Please try again.', 'error');
+                this.showWelcomeInterface();
             }
+            
         } catch (error) {
-            console.error('Signup error:', error);
-            this.showAuthError('Connection error. Please try again.');
-        }
-    }
-    
-    async checkUserSession() {
-        console.log('Checking user session...');
-        
-        const savedEmail = localStorage.getItem('roflfaucet_userEmail');
-        const sessionToken = localStorage.getItem('roflfaucet_sessionToken');
-        
-        if (savedEmail && sessionToken) {
-            console.log('Found existing session:', savedEmail);
-            this.userEmail = savedEmail;
-            await this.loadUserProfile();
-            this.showUserInterface();
-        } else {
-            console.log('No existing session, showing welcome interface');
+            console.error('💥 Token exchange error:', error);
+            this.showMessage('Connection error during login. Please try again.', 'error');
             this.showWelcomeInterface();
         }
     }
     
     async loadUserProfile() {
-        if (!this.userEmail) return;
+        if (!this.accessToken) {
+            console.log('❌ No access token available');
+            return;
+        }
         
         try {
-            console.log('Loading user profile from centralized database...');
-            const response = await fetch(`${this.dbApiBase}/api/users/${encodeURIComponent(this.userEmail)}`);
-            const userData = await response.json();
+            console.log('👤 Loading user profile from centralized API...');
+            
+            const response = await fetch(`${this.authApiBase}/oauth/userinfo`, {
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`
+                }
+            });
             
             if (response.ok) {
-                this.userProfile = {
-                    email: userData.email,
-                    username: userData.username || userData.display_name,
-                    id: userData.id
-                };
+                this.userProfile = await response.json();
+                console.log('✅ User profile loaded:', this.userProfile.username);
                 
-                console.log('User profile loaded:', this.userProfile);
-                await this.loadUserStats();
+                // OAuth test successful! Show user interface without user data
+                this.showUserInterface();
+                this.showMessage(`Welcome back, ${this.userProfile.username}! OAuth login successful.`, 'success');
+                
+            } else if (response.status === 401) {
+                console.log('🔄 Access token expired, attempting refresh...');
+                await this.refreshAccessToken();
             } else {
-                console.warn('User not found in database, will be created on first claim');
-                this.userProfile = {
-                    email: this.userEmail,
-                    username: this.userEmail.split('@')[0],
-                    id: this.userEmail
-                };
+                console.error('❌ Failed to load user profile:', response.status);
+                this.handleLogout();
             }
+            
         } catch (error) {
-            console.error('Failed to load user profile:', error);
+            console.error('💥 Profile loading error:', error);
+            this.showMessage('Failed to load profile. Please try logging in again.', 'error');
+            this.handleLogout();
         }
     }
     
-    async loadUserStats() {
-        if (!this.userEmail) return;
+    async refreshAccessToken() {
+        const refreshToken = localStorage.getItem('roflfaucet_refresh_token');
+        if (!refreshToken) {
+            console.log('❌ No refresh token available');
+            this.handleLogout();
+            return;
+        }
         
         try {
-            console.log('Loading user stats from centralized database...');
-            const response = await fetch(`${this.dbApiBase}/api/balances/${encodeURIComponent(this.userEmail)}`);
-            const balanceData = await response.json();
+            console.log('🔄 Refreshing access token...');
+            
+            const response = await fetch(`${this.authApiBase}/oauth/token`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    grant_type: 'refresh_token',
+                    client_id: this.clientId,
+                    refresh_token: refreshToken
+                })
+            });
             
             if (response.ok) {
-                this.userStats = {
-                    balance: balanceData.useless_coin_balance || 0,
-                    totalClaims: balanceData.total_claims || 0,
-                    canClaim: true, // Will be determined by claim timing
-                    nextClaimTime: null
-                };
+                const tokenData = await response.json();
                 
-                console.log('User stats loaded:', this.userStats);
-                this.updateUI();
+                this.accessToken = tokenData.access_token;
+                localStorage.setItem('roflfaucet_access_token', this.accessToken);
+                
+                if (tokenData.refresh_token) {
+                    localStorage.setItem('roflfaucet_refresh_token', tokenData.refresh_token);
+                }
+                
+                console.log('✅ Token refreshed successfully');
+                await this.loadUserProfile();
+                
             } else {
-                console.log('No existing balance, user will start with 0');
-                this.userStats = {
-                    balance: 0,
-                    totalClaims: 0,
-                    canClaim: true,
-                    nextClaimTime: null
-                };
+                console.log('❌ Token refresh failed');
+                this.handleLogout();
             }
+            
         } catch (error) {
-            console.error('Failed to load user stats:', error);
+            console.error('💥 Token refresh error:', error);
+            this.handleLogout();
         }
     }
     
-    // Claim Processing
+    // User stats removed - will be handled by users.directsponsor.org later
+    
+    canUserClaim(lastClaimAt) {
+        if (!lastClaimAt) return true;
+        
+        const lastClaim = new Date(lastClaimAt);
+        const now = new Date();
+        const timeDiff = now - lastClaim;
+        const cooldownTime = 60 * 60 * 1000; // 1 hour
+        
+        return timeDiff >= cooldownTime;
+    }
+    
+    getNextClaimTime(lastClaimAt) {
+        if (!lastClaimAt) return null;
+        
+        const lastClaim = new Date(lastClaimAt);
+        const cooldownTime = 60 * 60 * 1000; // 1 hour
+        return new Date(lastClaim.getTime() + cooldownTime);
+    }
+    
+    // Claim Token Logic
     
     async handleClaim() {
-        console.log('handleClaim() called - userEmail:', this.userEmail);
-        
-        if (!this.userEmail) {
-            console.error('No userEmail found - cannot proceed with claim');
-            this.showMessage('Please sign in first!', 'error');
-            this.showAuthModal();
-            return;
-        }
-        
-        // Show captcha section
-        this.showCaptchaSection();
+        // Claims disabled for OAuth testing - will be handled by users.directsponsor.org later
+        this.showMessage('OAuth test mode: Claims will be implemented with user data system', 'info');
+        console.log('🧪 Claims disabled - OAuth testing mode');
     }
     
-    async processClaim() {
-        if (!this.captchaToken) {
-            this.showMessage('Please complete the security check first!', 'warning');
-            return;
-        }
-        
-        const captchaSubmitBtn = document.getElementById('captcha-submit-btn');
-        const originalText = captchaSubmitBtn?.textContent;
-        
-        try {
-            if (captchaSubmitBtn) {
-                captchaSubmitBtn.disabled = true;
-                captchaSubmitBtn.textContent = '⏳ Processing...';
-            }
-            
-            console.log('🎮 Processing claim via centralized database...');
-            
-            // First ensure user exists in database
-            await this.ensureUserExists();
-            
-            // Process the claim
-            const response = await fetch(`${this.dbApiBase}/api/balances/${encodeURIComponent(this.userEmail)}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    currency: 'useless_coin',
-                    amount: 5,
-                    transaction_type: 'faucet_claim',
-                    source: 'roflfaucet'
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-                // Update user stats
-                this.userStats.balance = data.new_balance;
-                this.userStats.totalClaims += 1;
-                this.userStats.canClaim = false;
-                this.userStats.nextClaimTime = new Date(Date.now() + (15 * 60 * 1000)); // 15 minutes
-                
-                this.showMessage(`🎉 Successfully claimed 5 UselessCoins! New balance: ${data.new_balance} UC`, 'success');
-                this.updateUI();
-                this.startCountdown();
-                this.hideCaptchaSection();
-                
-                // Update global stats
-                this.loadGlobalStats();
-                
-                console.log('✅ Claim successful via centralized database');
-            } else {
-                throw new Error(data.error || 'Claim failed');
-            }
-            
-        } catch (error) {
-            console.error('Claim error:', error);
-            this.showMessage(error.message || 'Connection error. Please try again.', 'error');
-            this.hideCaptchaSection();
-        } finally {
-            if (captchaSubmitBtn) {
-                captchaSubmitBtn.disabled = false;
-                captchaSubmitBtn.textContent = originalText;
-            }
-        }
-    }
-    
-    async ensureUserExists() {
-        try {
-            // Try to create user (will succeed if user doesn't exist, fail silently if they do)
-            await fetch(`${this.dbApiBase}/api/users`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email: this.userEmail,
-                    username: this.userProfile?.username || this.userEmail.split('@')[0],
-                    display_name: this.userProfile?.username || this.userEmail.split('@')[0],
-                    source: 'roflfaucet_claim'
-                })
-            });
-        } catch (error) {
-            // User might already exist, which is fine
-            console.log('User creation attempted (may already exist)');
-        }
-    }
-    
-    handleLogout() {
-        // Clear all session data
-        localStorage.removeItem('roflfaucet_userEmail');
-        localStorage.removeItem('roflfaucet_sessionToken');
-        
-        // Reset user state
-        this.userEmail = null;
-        this.userProfile = null;
-        this.userStats = {
-            balance: 0,
-            totalClaims: 0,
-            canClaim: true,
-            nextClaimTime: null
-        };
-        
-        // Show welcome interface
-        this.showWelcomeInterface();
-        this.showMessage('Successfully logged out!', 'info');
-        console.log('User logged out successfully');
-    }
-    
-    // UI Methods
+    // UI Management
     
     showWelcomeInterface() {
         const welcomeSection = document.getElementById('welcome-section');
-        const userInterface = document.getElementById('user-interface');
+        const userSection = document.getElementById('user-section');
         
         if (welcomeSection) welcomeSection.style.display = 'block';
-        if (userInterface) userInterface.style.display = 'none';
+        if (userSection) userSection.style.display = 'none';
+        
+        console.log('👋 Showing welcome interface');
     }
     
     showUserInterface() {
         const welcomeSection = document.getElementById('welcome-section');
-        const userInterface = document.getElementById('user-interface');
+        const userSection = document.getElementById('user-section');
         
         if (welcomeSection) welcomeSection.style.display = 'none';
-        if (userInterface) userInterface.style.display = 'block';
+        if (userSection) userSection.style.display = 'block';
         
-        this.updateUI();
-    }
-    
-    showAuthModal() {
-        const modalOverlay = document.getElementById('auth-modal-overlay');
-        if (modalOverlay) {
-            modalOverlay.style.display = 'flex';
-            this.switchModalTab('login'); // Default to login tab
-        }
-    }
-    
-    hideAuthModal() {
-        const modalOverlay = document.getElementById('auth-modal-overlay');
-        if (modalOverlay) {
-            modalOverlay.style.display = 'none';
-        }
-        this.clearAuthError();
-    }
-    
-    switchModalTab(tab) {
-        // Remove active classes
-        document.querySelectorAll('.modal-container .tab-button').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        document.querySelectorAll('.modal-container .tab-content').forEach(content => {
-            content.classList.remove('active');
-        });
-        
-        // Add active class to selected tab
-        const targetButton = document.getElementById(`modal-${tab}-tab-btn`);
-        const targetTab = document.getElementById(`modal-${tab}-tab`);
-        
-        if (targetButton) targetButton.classList.add('active');
-        if (targetTab) targetTab.classList.add('active');
-        
-        this.clearAuthError();
-    }
-    
-    showAuthError(message) {
-        const errorDisplay = document.getElementById('auth-error-display');
-        if (errorDisplay) {
-            errorDisplay.textContent = message;
-            errorDisplay.style.display = 'block';
-        }
-    }
-    
-    clearAuthError() {
-        const errorDisplay = document.getElementById('auth-error-display');
-        if (errorDisplay) {
-            errorDisplay.style.display = 'none';
-        }
-    }
-    
-    showCaptchaSection() {
-        const captchaSection = document.getElementById('captcha-section');
-        const claimBtn = document.getElementById('claim-btn');
-        
-        if (captchaSection) captchaSection.style.display = 'block';
-        if (claimBtn) claimBtn.style.display = 'none';
-        
-        // Set up captcha submit button
-        const captchaSubmitBtn = document.getElementById('captcha-submit-btn');
-        if (captchaSubmitBtn) {
-            captchaSubmitBtn.addEventListener('click', () => this.processClaim());
-        }
-        
-        // Show fallback for development
-        const fallbackElement = document.getElementById('captcha-fallback');
-        if (fallbackElement) {
-            fallbackElement.style.display = 'block';
-        }
-    }
-    
-    hideCaptchaSection() {
-        const captchaSection = document.getElementById('captcha-section');
-        const claimBtn = document.getElementById('claim-btn');
-        
-        if (captchaSection) captchaSection.style.display = 'none';
-        if (claimBtn) claimBtn.style.display = 'block';
-        
-        // Reset captcha
-        this.captchaToken = null;
-        if (window.hcaptcha) {
-            window.hcaptcha.reset();
-        }
-    }
-    
-    updateCaptchaSubmitButton() {
-        const captchaSubmitBtn = document.getElementById('captcha-submit-btn');
-        if (!captchaSubmitBtn) return;
-        
-        if (this.captchaToken) {
-            captchaSubmitBtn.disabled = false;
-            captchaSubmitBtn.textContent = '🚀 Claim Your Tokens!';
-            captchaSubmitBtn.style.background = '#4caf50';
-        } else {
-            captchaSubmitBtn.disabled = true;
-            captchaSubmitBtn.textContent = '⏳ Complete Security Check First';
-            captchaSubmitBtn.style.background = '#ccc';
-        }
+        console.log('👤 Showing user interface');
     }
     
     updateUI() {
-        // Update username display
+        // Update balance displays
+        const balanceDisplay = document.getElementById('token-balance');
+        if (balanceDisplay) {
+            balanceDisplay.textContent = this.userStats.balance.toFixed(2);
+        }
+        
+        const coinDisplay = document.getElementById('coin-balance');
+        if (coinDisplay) {
+            coinDisplay.textContent = this.userStats.coinBalance.toFixed(2);
+        }
+        
+        const claimsDisplay = document.getElementById('claims-display');
+        if (claimsDisplay) {
+            claimsDisplay.textContent = this.userStats.totalClaims;
+        }
+        
+        // Update username
         const usernameDisplay = document.getElementById('username-display');
         if (usernameDisplay && this.userProfile) {
             usernameDisplay.textContent = this.userProfile.username;
         }
         
-        // Update balance
-        const balanceDisplay = document.getElementById('balance-display');
-        if (balanceDisplay) {
-            balanceDisplay.textContent = this.userStats.balance || 0;
-        }
-        
-        // Update total claims
-        const claimsDisplay = document.getElementById('claims-display');
-        if (claimsDisplay) {
-            claimsDisplay.textContent = this.userStats.totalClaims || 0;
-        }
-        
         // Update claim button
         const claimBtn = document.getElementById('claim-btn');
-        const btnText = claimBtn?.querySelector('.btn-text');
-        if (claimBtn && btnText) {
+        if (claimBtn) {
             claimBtn.disabled = !this.userStats.canClaim;
-            if (this.userStats.canClaim) {
-                btnText.textContent = '🎲 Claim 5 UselessCoins!';
-            } else {
-                btnText.textContent = 'Cooldown Active';
+            const btnText = claimBtn.querySelector('.btn-text');
+            if (btnText) {
+                btnText.textContent = this.userStats.canClaim ? 
+                    '🎲 Claim 5 WorthlessTokens!' : 
+                    'Cooldown Active';
             }
         }
-    }
-    
-    async loadGlobalStats() {
-        try {
-            const response = await fetch(`${this.dbApiBase}/api/stats`);
-            
-            if (response.ok) {
-                const stats = await response.json();
-                this.updateGlobalStats(stats);
-                console.log('Global stats loaded from centralized database:', stats);
-            } else {
-                console.error('Failed to load global stats');
-            }
-        } catch (error) {
-            console.error('Global stats loading error:', error);
-            // Use fallback demo stats
-            this.updateGlobalStats({
-                totalUsers: 1247,
-                totalClaims: 8934,
-                totalTokensDistributed: 44670
-            });
-        }
-    }
-    
-    updateGlobalStats(stats) {
-        const totalUsersEl = document.getElementById('total-users');
-        const totalClaimsEl = document.getElementById('total-claims');
-        const totalTokensEl = document.getElementById('total-tokens');
         
-        if (totalUsersEl) totalUsersEl.textContent = stats.totalUsers || stats.total_users || 0;
-        if (totalClaimsEl) totalClaimsEl.textContent = stats.totalClaims || stats.total_claims || 0;
-        if (totalTokensEl) totalTokensEl.textContent = stats.totalTokensDistributed || stats.total_tokens_distributed || 0;
+        this.updateCaptchaSubmitButton();
+    }
+    
+    updateCaptchaSubmitButton() {
+        const claimBtn = document.getElementById('claim-btn');
+        if (claimBtn) {
+            const hasValidCaptcha = !!this.captchaToken;
+            const canClaimNow = this.userStats.canClaim && hasValidCaptcha;
+            claimBtn.disabled = !canClaimNow;
+        }
     }
     
     startCountdown() {
@@ -617,16 +356,19 @@ class ROFLFaucetCentralized {
             if (timeLeft <= 0) {
                 this.userStats.canClaim = true;
                 this.updateUI();
+                const countdownDisplay = document.getElementById('countdown-display');
+                if (countdownDisplay) {
+                    countdownDisplay.textContent = '00:00';
+                }
                 return;
             }
             
             const minutes = Math.floor(timeLeft / 60000);
             const seconds = Math.floor((timeLeft % 60000) / 1000);
             
-            const claimBtn = document.getElementById('claim-btn');
-            const btnText = claimBtn?.querySelector('.btn-text');
-            if (btnText) {
-                btnText.textContent = `Next claim in ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            const countdownDisplay = document.getElementById('countdown-display');
+            if (countdownDisplay) {
+                countdownDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
             }
             
             setTimeout(updateCountdown, 1000);
@@ -635,68 +377,115 @@ class ROFLFaucetCentralized {
         updateCountdown();
     }
     
-    startPeriodicUpdates() {
-        // Refresh stats every 5 minutes
-        setInterval(() => {
-            this.loadGlobalStats();
-            if (this.userEmail) {
-                this.loadUserStats();
-            }
-        }, 5 * 60 * 1000);
-    }
-    
     showMessage(message, type = 'info') {
-        // Create or update message element
-        let messageEl = document.getElementById('global-message');
-        if (!messageEl) {
-            messageEl = document.createElement('div');
-            messageEl.id = 'global-message';
-            messageEl.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 20px;
-                border-radius: 8px;
-                color: white;
-                font-weight: bold;
-                z-index: 10000;
-                max-width: 300px;
-                word-wrap: break-word;
-            `;
-            document.body.appendChild(messageEl);
+        console.log(`📢 Message (${type}): ${message}`);
+        
+        const messageDiv = document.getElementById('message-display');
+        if (!messageDiv) {
+            // Fallback to alert if no message div
+            alert(`${type.toUpperCase()}: ${message}`);
+            return;
         }
         
-        // Set color based on type
-        const colors = {
-            success: '#4caf50',
-            error: '#f44336',
-            warning: '#ff9800',
-            info: '#2196f3'
-        };
-        
-        messageEl.style.backgroundColor = colors[type] || colors.info;
-        messageEl.textContent = message;
-        messageEl.style.display = 'block';
+        messageDiv.textContent = message;
+        messageDiv.className = `message-display ${type}`;
+        messageDiv.style.display = 'block';
         
         // Auto-hide after 5 seconds
         setTimeout(() => {
-            messageEl.style.display = 'none';
+            messageDiv.style.display = 'none';
         }, 5000);
+    }
+    
+    handleLogout() {
+        console.log('🚪 Logging out...');
+        
+        // Clear local storage
+        localStorage.removeItem('roflfaucet_access_token');
+        localStorage.removeItem('roflfaucet_refresh_token');
+        localStorage.removeItem('oauth_state');
+        
+        // Reset state
+        this.accessToken = null;
+        this.userProfile = null;
+        this.userStats = {
+            balance: 0,
+            coinBalance: 0,
+            totalClaims: 0,
+            canClaim: true,
+            nextClaimTime: null
+        };
+        
+        this.showWelcomeInterface();
+        this.showMessage('You have been logged out', 'info');
+    }
+    
+    // Global Stats (mock for now)
+    async loadGlobalStats() {
+        // Mock global stats - could be replaced with real API call
+        const globalStats = {
+            totalUsers: Math.floor(Math.random() * 1000) + 500,
+            totalClaims: Math.floor(Math.random() * 10000) + 5000,
+            charityFunding: Math.floor(Math.random() * 500) + 100
+        };
+        
+        // Update global stats display if elements exist
+        const totalUsersEl = document.getElementById('global-users');
+        if (totalUsersEl) totalUsersEl.textContent = globalStats.totalUsers;
+        
+        const totalClaimsEl = document.getElementById('global-claims');
+        if (totalClaimsEl) totalClaimsEl.textContent = globalStats.totalClaims;
+        
+        const charityFundingEl = document.getElementById('charity-funding');
+        if (charityFundingEl) charityFundingEl.textContent = `$${globalStats.charityFunding}`;
+    }
+    
+    startPeriodicUpdates() {
+        // Update global stats every 30 seconds
+        setInterval(() => {
+            this.loadGlobalStats();
+            // User stats updates will be handled by users.directsponsor.org later
+        }, 30000);
     }
 }
 
-// Initialize when DOM is loaded
+// Initialize when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing ROFLFaucet Centralized...');
-    window.roflfaucet = new ROFLFaucetCentralized();
+    console.log('🎯 DOM loaded, initializing ROFLFaucet...');
+    
+    try {
+        window.roflfaucet = new ROFLFaucetCentralized();
+        console.log('✅ ROFLFaucet initialized successfully!');
+    } catch (error) {
+        console.error('💥 Failed to initialize ROFLFaucet:', error);
+    }
 });
 
-// Fallback for older browsers
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        window.roflfaucet = new ROFLFaucetCentralized();
-    });
-} else {
-    window.roflfaucet = new ROFLFaucetCentralized();
-}
+// Global hCaptcha callback functions
+window.onCaptchaSuccess = function(token) {
+    console.log('✅ hCaptcha solved globally');
+    if (window.roflfaucet) {
+        window.roflfaucet.captchaToken = token;
+        window.roflfaucet.updateCaptchaSubmitButton();
+    }
+};
+
+window.onCaptchaError = function(error) {
+    console.error('❌ hCaptcha error:', error);
+    if (window.roflfaucet) {
+        window.roflfaucet.showMessage('Security check failed. Please try again.', 'error');
+        window.roflfaucet.captchaToken = null;
+        window.roflfaucet.updateCaptchaSubmitButton();
+    }
+};
+
+// Simulate captcha for development
+window.simulateCaptchaSuccess = function() {
+    console.log('🧪 Simulating captcha success for testing');
+    const fakeToken = 'test_token_' + Math.random().toString(36).substr(2, 9);
+    if (window.roflfaucet) {
+        window.roflfaucet.captchaToken = fakeToken;
+        window.roflfaucet.updateCaptchaSubmitButton();
+    }
+};
 

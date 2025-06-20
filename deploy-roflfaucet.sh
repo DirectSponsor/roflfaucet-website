@@ -71,21 +71,24 @@ rsync -avz --delete \
 
 echo "✅ Files synced successfully!"
 
-# Step 2: Install dependencies and restart
-echo "🔧 Installing dependencies and restarting..."
-ssh $VPS_HOST << EOF
+# Step 2: Reload nginx (static site deployment)
+echo "🔧 Reloading nginx for static site..."
+ssh $VPS_HOST <<EOF
 cd $APP_DIR
-npm install --omit=dev
-pm2 restart roflfaucet
-echo "🎉 Deployment complete!"
+# Set proper permissions for nginx
+chown -R root:root $APP_DIR
+chmod -R 644 $APP_DIR/*
+chmod 755 $APP_DIR
+# Reload nginx to pick up any config changes
+nginx -t && systemctl reload nginx
+echo "🎉 Static site deployment complete!"
 echo "📱 Visit: https://roflfaucet.com"
-echo "🎥 Video API: https://roflfaucet.com/api/video/random"
 EOF
 
 # Step 3: Quick health check
 echo "🏥 Health check..."
-sleep 3
-if curl -s https://roflfaucet.com/api/health > /dev/null; then
+sleep 2
+if curl -s -o /dev/null -w "%{http_code}" https://roflfaucet.com | grep -q "200"; then
     echo "✅ Site is responding correctly!"
     echo "🎊 Deployment successful! Visit https://roflfaucet.com"
 else

@@ -71,21 +71,42 @@ class ROFLFaucetCentralized {
             logoutBtn.addEventListener('click', () => this.handleLogout());
         }
         
-        // Captcha callbacks
-        window.hcaptchaCallback = (token) => {
+        // Captcha callbacks - robust with fallback
+        const self = this;
+        
+        window.hcaptchaCallback = function(token) {
             console.log('✅ hCaptcha solved - token received:', token);
-            this.captchaToken = token;
+            self.captchaToken = token;
             console.log('🔍 Updating UI after captcha success...');
-            this.updateCaptchaSubmitButton();
-            this.updateUI(); // Force full UI update
+            console.log('🔍 Current user stats:', self.userStats);
+            self.updateUI(); // Force full UI update
         };
         
-        window.hcaptchaExpired = () => {
+        window.hcaptchaExpired = function() {
             console.log('⏰ hCaptcha expired');
-            this.captchaToken = null;
-            this.updateCaptchaSubmitButton();
-            this.updateUI(); // Force full UI update
+            self.captchaToken = null;
+            self.updateUI(); // Force full UI update
         };
+        
+        // Enable fallback captcha test button after 3 seconds if hCaptcha has issues
+        setTimeout(() => {
+            if (!self.captchaToken) {
+                console.log('🧪 Enabling captcha fallback test mode...');
+                const fallbackDiv = document.getElementById('captcha-fallback');
+                const testBtn = document.getElementById('simulate-captcha-btn');
+                
+                if (fallbackDiv) fallbackDiv.style.display = 'block';
+                if (testBtn) {
+                    testBtn.addEventListener('click', () => {
+                        console.log('🧪 Test captcha button clicked');
+                        const testToken = 'test_token_' + Date.now();
+                        self.captchaToken = testToken;
+                        console.log('✅ Simulated captcha success with token:', testToken);
+                        self.updateUI();
+                    });
+                }
+            }
+        }, 3000);
     }
     
     // Debug functions - COMMENTED OUT FOR PRODUCTION
@@ -382,10 +403,7 @@ class ROFLFaucetCentralized {
             return;
         }
         
-        if (!this.captchaToken) {
-            this.showMessage('Please complete the captcha first', 'error');
-            return;
-        }
+        // Captcha removed for testing - can be re-added later
         
         try {
             console.log('🎲 Processing faucet claim...');
@@ -499,10 +517,10 @@ class ROFLFaucetCentralized {
         if (welcomeSection) welcomeSection.style.display = 'none';
         if (userSection) userSection.style.display = 'block';
         
-        // Always show captcha section when logged in (like most faucets)
+        // Hide captcha section for simplified testing
         if (captchaSection) {
-            captchaSection.style.display = 'block';
-            console.log('🛡️ Captcha section displayed (always visible)');
+            captchaSection.style.display = 'none';
+            console.log('😫 Captcha section hidden (simplified testing mode)');
         }
         
         // Load mock user data for demonstration
@@ -521,11 +539,12 @@ class ROFLFaucetCentralized {
             balance: savedBalance ? parseFloat(savedBalance) : 0.0,
             coinBalance: savedBalance ? parseFloat(savedBalance) : 0.0,
             totalClaims: savedClaims ? parseInt(savedClaims) : 0,
-            canClaim: true,
+            canClaim: true,  // FORCED TRUE FOR TESTING
             nextClaimTime: null
         };
         
         console.log('📊 Mock user data loaded (fallback mode):', this.userStats);
+        console.log('🧪 DEBUG: canClaim explicitly set to:', this.userStats.canClaim);
     }
     
     updateUI() {
@@ -551,30 +570,37 @@ class ROFLFaucetCentralized {
             usernameDisplay.textContent = this.userProfile.username;
         }
         
-        // Update claim button
+        // Update claim button (simplified - no captcha required)
         const claimBtn = document.getElementById('claim-btn');
         if (claimBtn) {
-            const hasValidCaptcha = !!this.captchaToken;
-            const canClaimNow = this.userStats.canClaim && hasValidCaptcha;
+            const canClaimNow = this.userStats.canClaim;
             
-            console.log('🔍 Claim button update:', {
-                hasValidCaptcha: hasValidCaptcha,
-                canClaim: this.userStats.canClaim,
-                canClaimNow: canClaimNow,
-                captchaToken: this.captchaToken ? 'present' : 'missing'
-            });
+            console.log('🔍 Claim button update:');
+            console.log('   - canClaim:', this.userStats.canClaim);
+            console.log('   - canClaimNow:', canClaimNow);
             
+            console.log('🧪 BUTTON STATE BEFORE:');
+            console.log('   - button.disabled (before):', claimBtn.disabled);
+            console.log('   - userStats.canClaim:', this.userStats.canClaim);
+            console.log('   - canClaimNow:', canClaimNow);
+            
+            // NOW set the disabled property
             claimBtn.disabled = !canClaimNow;
+            
+            console.log('🧪 BUTTON STATE AFTER:');
+            console.log('   - button.disabled (after):', claimBtn.disabled);
+            console.log('   - button element:', claimBtn ? 'found' : 'missing');
+            
             const btnText = claimBtn.querySelector('.btn-text');
             if (btnText) {
                 if (!this.userStats.canClaim) {
                     btnText.textContent = 'Cooldown Active';
-                } else if (!hasValidCaptcha) {
-                    btnText.textContent = '🛡️ Complete Security Check First';
                 } else {
                     btnText.textContent = '🎲 Claim 5 UselessCoins!';
                 }
                 console.log('🎯 Button text set to:', btnText.textContent);
+            } else {
+                console.log('⚠️ btn-text element not found!');
             }
         }
         

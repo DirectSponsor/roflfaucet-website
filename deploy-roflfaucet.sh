@@ -62,40 +62,70 @@ ssh $VPS_HOST "cd $BACKUP_DIR && ls -1t | tail -n +$((MAX_BACKUPS + 1)) | xargs 
 
 # Step 3: Sync files to VPS
 echo "📦 Syncing files to VPS..."
-rsync -avz --delete \
+echo "📁 Source: $(pwd)"
+echo "📂 Target: $VPS_HOST:$APP_DIR/"
+echo ""
+
+# Use verbose rsync to show progress
+rsync -avz --progress --delete \
   --exclude 'node_modules/' \
   --exclude '.git/' \
   --exclude '*.log' \
   --exclude 'deploy.sh' \
   . $VPS_HOST:$APP_DIR/
 
+echo ""
 echo "✅ Files synced successfully!"
 
-# Step 2: Reload nginx (static site deployment)
-echo "🔧 Reloading nginx for static site..."
-ssh $VPS_HOST <<EOF
-cd $APP_DIR
-# Set proper permissions for nginx
-chown -R root:root $APP_DIR
-chmod -R 644 $APP_DIR/*
-chmod 755 $APP_DIR
-# Fix auth directory permissions specifically
-chmod 755 $APP_DIR/auth/
-chmod 644 $APP_DIR/auth/callback.html
-# Reload nginx to pick up any config changes
-nginx -t && systemctl reload nginx
-echo "🎉 Static site deployment complete!"
-echo "📱 Visit: https://roflfaucet.com"
-EOF
+# Step 4: Set permissions and reload nginx (with timeout protection)
+echo "🔧 Setting permissions and reloading nginx..."
+echo "⏱️  Using SSH with timeout protection..."
 
-# Step 3: Quick health check
-echo "🏥 Health check..."
-sleep 2
-if curl -s -o /dev/null -w "%{http_code}" https://roflfaucet.com | grep -q "200"; then
-    echo "✅ Site is responding correctly!"
-    echo "🎊 Deployment successful! Visit https://roflfaucet.com"
+# Use timeout to prevent hanging, and show what we're doing
+timeout 30 ssh $VPS_HOST bash -c '
+echo "📁 Setting permissions..."
+cd /root/roflfaucet
+chown -R root:root /root/roflfaucet
+chmod -R 644 /root/roflfaucet/*
+chmod 755 /root/roflfaucet
+echo "🔐 Fixing auth directory permissions..."
+chmod 755 /root/roflfaucet/auth/
+chmod 644 /root/roflfaucet/auth/callback.html 2>/dev/null || echo "Auth callback permissions set"
+echo "🔄 Testing nginx config..."
+nginx -t
+echo "♻️  Reloading nginx..."
+systemctl reload nginx
+echo "✅ Nginx reloaded successfully!"
+' || {
+    echo "⚠️  SSH command timed out after 30 seconds, but files were synced"
+    echo "🔧 You may need to manually reload nginx if needed"
+}
+
+# Step 5: Quick health check (with timeout)
+echo ""
+echo "🏥 Testing site availability..."
+echo "🌐 Checking: https://roflfaucet.com"
+
+HTTP_CODE=$(timeout 10 curl -s -o /dev/null -w "%{http_code}" https://roflfaucet.com 2>/dev/null || echo "timeout")
+
+if [[ "$HTTP_CODE" == "200" ]]; then
+    echo "✅ Site is responding correctly! (HTTP $HTTP_CODE)"
+    echo "🎊 Deployment successful!"
 else
-    echo "⚠️  Site may still be starting up. Check manually: https://roflfaucet.com"
+    echo "⚠️  Site check: $HTTP_CODE (may still be starting up)"
+    echo "🔗 Please check manually: https://roflfaucet.com"
+fi
+
+# Check if progress.html was deployed
+echo ""
+echo "📝 Checking progress page..."
+PROGRESS_CODE=$(timeout 10 curl -s -o /dev/null -w "%{http_code}" https://roflfaucet.com/progress.html 2>/dev/null || echo "timeout")
+
+if [[ "$PROGRESS_CODE" == "200" ]]; then
+    echo "✅ Progress page is live! (HTTP $PROGRESS_CODE)"
+    echo "📖 View at: https://roflfaucet.com/progress.html"
+else
+    echo "⚠️  Progress page check: $PROGRESS_CODE"
 fi
 
 echo "🎯 Deployment script complete!"

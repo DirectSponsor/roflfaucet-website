@@ -42,6 +42,12 @@ class OAuthSimpleFaucet {
         if (logoutBtn) {
             logoutBtn.addEventListener('click', () => this.handleLogout());
         }
+        
+        // Clear cache button
+        const clearCacheBtn = document.getElementById('clear-cache-btn');
+        if (clearCacheBtn) {
+            clearCacheBtn.addEventListener('click', () => this.handleClearCache());
+        }
     }
     
     checkAuth() {
@@ -305,6 +311,35 @@ class OAuthSimpleFaucet {
         
         this.showLoginScreen();
         this.showMessage('Logged out successfully', 'info');
+    }
+    
+    handleClearCache() {
+        console.log('🗑️ Clearing browser cache...');
+        
+        // Show immediate feedback
+        this.showMessage('Clearing cache and reloading...', 'info');
+        
+        // Clear browser cache using multiple methods
+        setTimeout(() => {
+            try {
+                // Method 1: Clear localStorage
+                localStorage.clear();
+                
+                // Method 2: Clear sessionStorage
+                sessionStorage.clear();
+                
+                // Method 3: Force reload with cache bypass
+                // This is equivalent to Ctrl+F5
+                window.location.reload(true);
+                
+            } catch (error) {
+                console.error('Cache clear error:', error);
+                // Fallback: Regular reload with cache busting
+                const url = new URL(window.location);
+                url.searchParams.set('_cache_bust', Date.now());
+                window.location.href = url.toString();
+            }
+        }, 500); // Small delay to show the message
     }
     
     showMessage(text, type = 'info') {

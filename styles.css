@@ -228,10 +228,14 @@ body {
 }
 
 .header .container {
+    padding: 1rem 20px;
+}
+
+.header-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 20px;
+    gap: 2rem;
 }
 
 .logo h1 {
@@ -264,6 +268,63 @@ body {
 .nav-link.active {
     background: var(--bg-accent);
     color: var(--primary-color);
+}
+
+/* Header Authentication Area */
+.header-auth {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-auth-btn {
+    background: var(--primary-color);
+    color: var(--text-white);
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.header-auth-btn:hover {
+    background: var(--secondary-color);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+.header-auth-btn.logout {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.header-auth-btn.logout:hover {
+    background: var(--warning-color);
+    color: var(--text-primary);
+    border-color: var(--warning-color);
+}
+
+.header-user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-greeting {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.user-greeting span {
+    color: var(--primary-color);
+    font-weight: 600;
 }
 
 /* Main Content */

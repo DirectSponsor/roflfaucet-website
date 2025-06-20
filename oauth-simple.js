@@ -25,22 +25,31 @@ class OAuthSimpleFaucet {
     }
     
     setupEventListeners() {
-        // Login button
-        const loginBtn = document.getElementById('oauth-login-btn');
-        if (loginBtn) {
-            loginBtn.addEventListener('click', () => this.startLogin());
+        // Header login button
+        const headerLoginBtn = document.getElementById('header-login-btn');
+        if (headerLoginBtn) {
+            headerLoginBtn.addEventListener('click', () => this.startLogin());
         }
         
-        // Claim button
+        // Header logout button
+        const headerLogoutBtn = document.getElementById('header-logout-btn');
+        if (headerLogoutBtn) {
+            headerLogoutBtn.addEventListener('click', () => this.handleLogout());
+        }
+        
+        // Modal login button
+        const modalLoginBtn = document.getElementById('modal-login-btn');
+        if (modalLoginBtn) {
+            modalLoginBtn.addEventListener('click', () => {
+                this.hideLoginDialog();
+                this.startLogin();
+            });
+        }
+        
+        // Claim button (always visible, but shows dialog if not logged in)
         const claimBtn = document.getElementById('oauth-claim-btn');
         if (claimBtn) {
-            claimBtn.addEventListener('click', () => this.handleClaim());
-        }
-        
-        // Logout button
-        const logoutBtn = document.getElementById('oauth-logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => this.handleLogout());
+            claimBtn.addEventListener('click', () => this.handleClaimClick());
         }
     }
     
@@ -245,28 +254,40 @@ class OAuthSimpleFaucet {
     }
     
     showLoginScreen() {
-        const loginSection = document.getElementById('oauth-login-section');
-        const faucetSection = document.getElementById('oauth-faucet-section');
+        // Show login button in header
+        const headerLoginBtn = document.getElementById('header-login-btn');
+        const headerUserInfo = document.getElementById('header-user-info');
         
-        if (loginSection) loginSection.style.display = 'block';
-        if (faucetSection) faucetSection.style.display = 'none';
+        if (headerLoginBtn) headerLoginBtn.style.display = 'block';
+        if (headerUserInfo) headerUserInfo.style.display = 'none';
+        
+        // Hide the welcome section
+        const welcomeSection = document.getElementById('oauth-welcome-section');
+        if (welcomeSection) welcomeSection.style.display = 'none';
     }
     
     showFaucetScreen() {
-        const loginSection = document.getElementById('oauth-login-section');
-        const faucetSection = document.getElementById('oauth-faucet-section');
+        // Show user info in header
+        const headerLoginBtn = document.getElementById('header-login-btn');
+        const headerUserInfo = document.getElementById('header-user-info');
         
-        if (loginSection) loginSection.style.display = 'none';
-        if (faucetSection) faucetSection.style.display = 'block';
+        if (headerLoginBtn) headerLoginBtn.style.display = 'none';
+        if (headerUserInfo) headerUserInfo.style.display = 'flex';
+        
+        // Show the welcome section
+        const welcomeSection = document.getElementById('oauth-welcome-section');
+        if (welcomeSection) welcomeSection.style.display = 'block';
         
         this.updateUI();
     }
     
     updateUI() {
-        // Update username
-        const usernameEl = document.getElementById('oauth-username');
-        if (usernameEl && this.userProfile) {
-            usernameEl.textContent = this.userProfile.username;
+        // Update username in all locations
+        const usernameEls = document.querySelectorAll('#oauth-username, #header-username');
+        if (this.userProfile) {
+            usernameEls.forEach(el => {
+                if (el) el.textContent = this.userProfile.username;
+            });
         }
         
         // Update balance
@@ -278,14 +299,17 @@ class OAuthSimpleFaucet {
         // Update claim button
         const claimBtn = document.getElementById('oauth-claim-btn');
         if (claimBtn) {
-            claimBtn.disabled = !this.canClaim;
+            claimBtn.disabled = this.accessToken ? !this.canClaim : false;
             
-            if (this.canClaim) {
+            if (!this.accessToken) {
                 claimBtn.textContent = '🎲 Claim 5 UselessCoins';
-                claimBtn.className = 'claim-btn enabled';
+                claimBtn.className = 'claim-button';
+            } else if (this.canClaim) {
+                claimBtn.textContent = '🎲 Claim 5 UselessCoins';
+                claimBtn.className = 'claim-button';
             } else {
                 claimBtn.textContent = '⏱️ Cooldown Active';
-                claimBtn.className = 'claim-btn disabled';
+                claimBtn.className = 'claim-button disabled';
             }
             
             console.log('🔄 UI Updated - Balance:', this.balance, 'Can claim:', this.canClaim);
@@ -305,6 +329,28 @@ class OAuthSimpleFaucet {
         
         this.showLoginScreen();
         this.showMessage('Logged out successfully', 'info');
+    }
+
+    handleClaimClick() {
+        if (!this.accessToken) {
+            this.showLoginDialog();
+        } else {
+            this.handleClaim();
+        }
+    }
+
+    showLoginDialog() {
+        const dialog = document.getElementById('login-dialog');
+        if (dialog) {
+            dialog.style.display = 'flex';
+        }
+    }
+
+    hideLoginDialog() {
+        const dialog = document.getElementById('login-dialog');
+        if (dialog) {
+            dialog.style.display = 'none';
+        }
     }
     
     

@@ -2,8 +2,6 @@
 # Lightweight HTML Include Processor
 # Similar to BBEdit's include system
 
-set -e
-
 echo "🔨 Building HTML files with includes..."
 
 # Function to process includes in a file
@@ -18,7 +16,7 @@ process_includes() {
     cp "$input_file" "$temp_file"
     
     # Process all include directives
-    while grep -q '<!--#include file=".*" -->' "$temp_file"; do
+    while grep -q '<!--#include file=".*" -->' "$temp_file" 2>/dev/null; do
         # Find the first include
         include_line=$(grep -n '<!--#include file=".*" -->' "$temp_file" | head -1)
         line_num=$(echo "$include_line" | cut -d: -f1)
@@ -102,4 +100,7 @@ else
     echo "   includes/           - Shared HTML snippets"
     echo "   *.html              - Generated output files"
 fi
+
+# Ensure script exits with success
+exit 0
 

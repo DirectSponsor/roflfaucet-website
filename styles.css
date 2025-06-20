@@ -288,10 +288,6 @@ body {
     flex: 2;
     min-width: 300px;
     order: 2;
-    background: white;
-    border-radius: 10px;
-    padding: 0;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 .sidebar-right {

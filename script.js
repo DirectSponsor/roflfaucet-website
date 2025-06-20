@@ -73,15 +73,18 @@ class ROFLFaucetCentralized {
         
         // Captcha callbacks
         window.hcaptchaCallback = (token) => {
-            console.log('✅ hCaptcha solved');
+            console.log('✅ hCaptcha solved - token received:', token);
             this.captchaToken = token;
+            console.log('🔍 Updating UI after captcha success...');
             this.updateCaptchaSubmitButton();
+            this.updateUI(); // Force full UI update
         };
         
         window.hcaptchaExpired = () => {
             console.log('⏰ hCaptcha expired');
             this.captchaToken = null;
             this.updateCaptchaSubmitButton();
+            this.updateUI(); // Force full UI update
         };
     }
     
@@ -554,6 +557,13 @@ class ROFLFaucetCentralized {
             const hasValidCaptcha = !!this.captchaToken;
             const canClaimNow = this.userStats.canClaim && hasValidCaptcha;
             
+            console.log('🔍 Claim button update:', {
+                hasValidCaptcha: hasValidCaptcha,
+                canClaim: this.userStats.canClaim,
+                canClaimNow: canClaimNow,
+                captchaToken: this.captchaToken ? 'present' : 'missing'
+            });
+            
             claimBtn.disabled = !canClaimNow;
             const btnText = claimBtn.querySelector('.btn-text');
             if (btnText) {
@@ -564,6 +574,7 @@ class ROFLFaucetCentralized {
                 } else {
                     btnText.textContent = '🎲 Claim 5 UselessCoins!';
                 }
+                console.log('🎯 Button text set to:', btnText.textContent);
             }
         }
         

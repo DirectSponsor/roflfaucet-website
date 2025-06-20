@@ -150,10 +150,11 @@
         }
         
         .summary-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            display: flex;
+            flex-wrap: wrap;
             gap: 15px;
             margin-top: 15px;
+            justify-content: center;
         }
         
         .summary-stat {

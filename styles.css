@@ -2095,12 +2095,13 @@ section h2 {
     text-align: center;
 }
 
-/* Stats grid - reusable for any stats display */
+/* Stats display - reusable for any stats display using flexbox */
 .stats-display {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 15px;
     margin-top: 15px;
+    justify-content: center;
 }
 
 .stats-item {

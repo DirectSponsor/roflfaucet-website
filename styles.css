@@ -1368,16 +1368,16 @@ section h2 {
     }
     
     .sidebar-left,
-    .faucet-section,
+    .main-content,
     .sidebar-right {
         flex: none;
         min-width: auto;
         width: 100%;
     }
     
-    /* Mobile column reordering - faucet content comes FIRST */
-    .faucet-section {
-        order: 1; /* Faucet content first on mobile */
+    /* Mobile column reordering - main content comes FIRST */
+    .main-content {
+        order: 1; /* Main content first on mobile */
     }
     
     .sidebar-left {

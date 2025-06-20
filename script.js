@@ -447,7 +447,7 @@ class ROFLFaucetCentralized {
         const lastClaim = new Date(lastClaimAt);
         const now = new Date();
         const timeDiff = now - lastClaim;
-        const cooldownTime = 5 * 60 * 1000; // 5 minutes (testing mode)
+        const cooldownTime = 60 * 1000; // 60 seconds (debug mode)
         
         return timeDiff >= cooldownTime;
     }
@@ -456,7 +456,7 @@ class ROFLFaucetCentralized {
         if (!lastClaimAt) return null;
         
         const lastClaim = new Date(lastClaimAt);
-        const cooldownTime = 5 * 60 * 1000; // 5 minutes (testing mode)
+        const cooldownTime = 60 * 1000; // 60 seconds (debug mode)
         return new Date(lastClaim.getTime() + cooldownTime);
     }
     

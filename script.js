@@ -491,9 +491,16 @@ class ROFLFaucetCentralized {
     showUserInterface() {
         const welcomeSection = document.getElementById('welcome-section');
         const userSection = document.getElementById('user-interface');
+        const captchaSection = document.getElementById('captcha-section');
         
         if (welcomeSection) welcomeSection.style.display = 'none';
         if (userSection) userSection.style.display = 'block';
+        
+        // Always show captcha section when logged in (like most faucets)
+        if (captchaSection) {
+            captchaSection.style.display = 'block';
+            console.log('🛡️ Captcha section displayed (always visible)');
+        }
         
         // Load mock user data for demonstration
         this.loadMockUserData();
@@ -544,12 +551,19 @@ class ROFLFaucetCentralized {
         // Update claim button
         const claimBtn = document.getElementById('claim-btn');
         if (claimBtn) {
-            claimBtn.disabled = !this.userStats.canClaim;
+            const hasValidCaptcha = !!this.captchaToken;
+            const canClaimNow = this.userStats.canClaim && hasValidCaptcha;
+            
+            claimBtn.disabled = !canClaimNow;
             const btnText = claimBtn.querySelector('.btn-text');
             if (btnText) {
-                btnText.textContent = this.userStats.canClaim ? 
-                    '🎲 Claim 5 WorthlessTokens!' : 
-                    'Cooldown Active';
+                if (!this.userStats.canClaim) {
+                    btnText.textContent = 'Cooldown Active';
+                } else if (!hasValidCaptcha) {
+                    btnText.textContent = '🛡️ Complete Security Check First';
+                } else {
+                    btnText.textContent = '🎲 Claim 5 UselessCoins!';
+                }
             }
         }
         

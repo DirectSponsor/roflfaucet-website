@@ -79,6 +79,9 @@ cd $APP_DIR
 chown -R root:root $APP_DIR
 chmod -R 644 $APP_DIR/*
 chmod 755 $APP_DIR
+# Fix auth directory permissions specifically
+chmod 755 $APP_DIR/auth/
+chmod 644 $APP_DIR/auth/callback.html
 # Reload nginx to pick up any config changes
 nginx -t && systemctl reload nginx
 echo "🎉 Static site deployment complete!"

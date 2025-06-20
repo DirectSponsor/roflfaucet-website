@@ -370,6 +370,12 @@ class OAuthSimpleFaucet {
     }
 }
 
+// Modal helper functions (globally accessible)
+window.hideLoginDialog = () => {
+    const dialog = document.getElementById('login-dialog');
+    if (dialog) dialog.style.display = 'none';
+};
+
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🎯 DOM loaded, initializing OAuth Simple Faucet...');

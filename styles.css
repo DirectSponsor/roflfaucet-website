@@ -236,6 +236,7 @@ body {
     justify-content: space-between;
     align-items: center;
     gap: 2rem;
+    width: 100%;
 }
 
 .logo h1 {
@@ -253,6 +254,7 @@ body {
 .nav {
     display: flex;
     gap: 2rem;
+    margin: 0 2rem;
 }
 
 .nav-link {
@@ -275,6 +277,7 @@ body {
     display: flex;
     align-items: center;
     gap: 1rem;
+    margin-left: auto;
 }
 
 .header-auth-btn {
@@ -1555,20 +1558,23 @@ section h2 {
 
 .modal-container {
     background: white;
-    border: 2px solid #ccc;
-    max-width: 400px;
+    border: none;
+    border-radius: 0.5em;
+    max-width: 25em;
     width: 90%;
     max-height: 80%;
     overflow-y: auto;
     position: relative;
+    box-shadow: 0 0.625em 1.875em rgba(0, 0, 0, 0.3);
 }
 
 .modal-header {
-    background: #4CAF50;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     color: white;
-    padding: 20px;
+    padding: 1.25em;
     text-align: center;
     position: relative;
+    border-radius: 0.5em 0.5em 0 0;
 }
 
 .modal-header h1 {
@@ -1577,25 +1583,32 @@ section h2 {
 }
 
 .modal-header p {
-    margin: 5px 0 0;
+    margin: 0.5em 0 0;
     font-size: 0.9em;
+    opacity: 0.9;
 }
 
 .modal-close {
     position: absolute;
-    top: 10px;
-    right: 15px;
+    top: 0.625em;
+    right: 0.9375em;
     background: none;
     border: none;
     color: white;
-    font-size: 20px;
+    font-size: 1.25em;
     cursor: pointer;
-    width: 30px;
-    height: 30px;
+    width: 2em;
+    height: 2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+    border-radius: 50%;
 }
 
 .modal-close:hover {
     background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
 }
 
 .modal-container .auth-tabs {

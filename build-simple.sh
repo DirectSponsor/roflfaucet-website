@@ -15,7 +15,10 @@ process_html_includes() {
     cp "$html_file" "$temp_file"
     
     # Process each include marker pair
-    while grep -q "<!-- INCLUDE START:" "$temp_file"; do
+    local processed_count=0
+    local max_iterations=20  # Safety limit
+    
+    while grep -q "<!-- INCLUDE START:" "$temp_file" && [[ $processed_count -lt $max_iterations ]]; do
         # Find first include start marker
         start_line=$(grep -n "<!-- INCLUDE START:" "$temp_file" | head -1 | cut -d: -f1)
         
@@ -23,17 +26,24 @@ process_html_includes() {
             break
         fi
         
-        # Extract include filename
-        include_file=$(sed -n "${start_line}p" "$temp_file" | sed 's/.*<!-- INCLUDE START: \([^[:space:]]*\) .*/\1/')
+        # Extract include filename (everything between START: and -->)
+        include_line=$(sed -n "${start_line}p" "$temp_file")
+        include_file=$(echo "$include_line" | sed 's/.*<!-- INCLUDE START: \([^ ]*\) .*/\1/')
+        
+        echo "  🔍 Processing include: $include_file (iteration $((processed_count + 1)))"
         
         # Find corresponding end marker
-        end_line=$(tail -n +$start_line "$temp_file" | grep -n "<!-- INCLUDE END: $include_file" | head -1 | cut -d: -f1)
-        end_line=$((start_line + end_line - 1))
+        end_search=$(tail -n +$((start_line + 1)) "$temp_file" | grep -n "<!-- INCLUDE END: $include_file" | head -1 | cut -d: -f1)
         
-        if [[ -z "$end_line" ]]; then
+        if [[ -z "$end_search" ]]; then
             echo "  ⚠️  Warning: No end marker found for $include_file"
-            break
+            # Remove just the start line to prevent infinite loop
+            sed -i "${start_line}d" "$temp_file"
+            ((processed_count++))
+            continue
         fi
+        
+        end_line=$((start_line + end_search))
         
         # Add includes/ prefix if needed
         include_path="$include_file"
@@ -69,7 +79,13 @@ process_html_includes() {
             # Remove the include block to prevent infinite loop
             sed -i "${start_line},${end_line}d" "$temp_file"
         fi
+        
+        ((processed_count++))
     done
+    
+    if [[ $processed_count -ge $max_iterations ]]; then
+        echo "  ⚠️  Warning: Reached maximum iterations limit for $html_file"
+    fi
     
     # Update original file
     mv "$temp_file" "$html_file"

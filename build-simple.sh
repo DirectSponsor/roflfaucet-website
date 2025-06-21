@@ -14,78 +14,68 @@ process_html_includes() {
     # Copy original to temp
     cp "$html_file" "$temp_file"
     
-    # Process each include marker pair
-    local processed_count=0
-    local max_iterations=20  # Safety limit
+    # Simple approach: Find includes with placeholder content and process them
+    local changes_made=1
+    local iterations=0
+    local max_iterations=10
     
-    while grep -q "<!-- INCLUDE START:" "$temp_file" && [[ $processed_count -lt $max_iterations ]]; do
-        # Find first include start marker
-        start_line=$(grep -n "<!-- INCLUDE START:" "$temp_file" | head -1 | cut -d: -f1)
+    while [[ $changes_made -eq 1 && $iterations -lt $max_iterations ]]; do
+        changes_made=0
+        ((iterations++))
         
-        if [[ -z "$start_line" ]]; then
-            break
-        fi
+        echo "  🔄 Pass $iterations: Looking for unprocessed includes"
         
-        # Extract include filename (everything between START: and -->)
-        include_line=$(sed -n "${start_line}p" "$temp_file")
-        include_file=$(echo "$include_line" | sed 's/.*<!-- INCLUDE START: \([^ ]*\) .*/\1/')
-        
-        echo "  🔍 Processing include: $include_file (iteration $((processed_count + 1)))"
-        
-        # Find corresponding end marker
-        end_search=$(tail -n +$((start_line + 1)) "$temp_file" | grep -n "<!-- INCLUDE END: $include_file" | head -1 | cut -d: -f1)
-        
-        if [[ -z "$end_search" ]]; then
-            echo "  ⚠️  Warning: No end marker found for $include_file"
-            # Remove just the start line to prevent infinite loop
-            sed -i "${start_line}d" "$temp_file"
-            ((processed_count++))
-            continue
-        fi
-        
-        end_line=$((start_line + end_search))
-        
-        # Add includes/ prefix if needed
-        include_path="$include_file"
-        if [[ "$include_file" != includes/* && -f "includes/$include_file" ]]; then
-            include_path="includes/$include_file"
-        fi
-        
-        if [[ -f "$include_path" ]]; then
-            echo "  📎 Including: $include_path"
+        # Find include blocks that still have placeholder content
+        while IFS= read -r line_info; do
+            if [[ -z "$line_info" ]]; then
+                continue
+            fi
             
-            # Create new temp file with include replaced
-            new_temp=$(mktemp)
+            start_line=$(echo "$line_info" | cut -d: -f1)
+            include_file=$(echo "$line_info" | sed 's/.*<!-- INCLUDE START: \([^ ]*\) .*/\1/')
             
-            # Copy lines before start marker
-            head -n $((start_line - 1)) "$temp_file" > "$new_temp"
-            
-            # Add start marker
-            echo "<!-- INCLUDE START: $include_file -->" >> "$new_temp"
-            
-            # Add the included content
-            cat "$include_path" >> "$new_temp"
-            
-            # Add end marker  
-            echo "<!-- INCLUDE END: $include_file -->" >> "$new_temp"
-            
-            # Copy lines after end marker
-            tail -n +$((end_line + 1)) "$temp_file" >> "$new_temp"
-            
-            # Replace temp file
-            mv "$new_temp" "$temp_file"
-        else
-            echo "  ⚠️  Include file not found: $include_path"
-            # Remove the include block to prevent infinite loop
-            sed -i "${start_line},${end_line}d" "$temp_file"
-        fi
-        
-        ((processed_count++))
+            # Check if this include has placeholder content (comment on next line)
+            next_line_content=$(sed -n "$((start_line + 1))p" "$temp_file")
+            if [[ "$next_line_content" =~ ^[[:space:]]*\<!--.*--\>[[:space:]]*$ ]]; then
+                echo "    📎 Processing: $include_file"
+                
+                # Find end marker
+                end_line=$(tail -n +$start_line "$temp_file" | grep -n "<!-- INCLUDE END: $include_file" | head -1 | cut -d: -f1)
+                if [[ -n "$end_line" ]]; then
+                    end_line=$((start_line + end_line - 1))
+                    
+                    # Add includes/ prefix if needed
+                    include_path="$include_file"
+                    if [[ "$include_file" != includes/* && -f "includes/$include_file" ]]; then
+                        include_path="includes/$include_file"
+                    fi
+                    
+                    if [[ -f "$include_path" ]]; then
+                        # Replace content between markers
+                        {
+                            head -n $start_line "$temp_file"
+                            cat "$include_path"
+                            tail -n +$end_line "$temp_file"
+                        } > "${temp_file}.new"
+                        mv "${temp_file}.new" "$temp_file"
+                        changes_made=1
+                        echo "    ✅ Included: $include_path"
+                        break  # Process one at a time
+                    else
+                        echo "    ⚠️  File not found: $include_path"
+                    fi
+                else
+                    echo "    ⚠️  No end marker for: $include_file"
+                fi
+            fi
+        done < <(grep -n "<!-- INCLUDE START:" "$temp_file")
     done
     
-    if [[ $processed_count -ge $max_iterations ]]; then
-        echo "  ⚠️  Warning: Reached maximum iterations limit for $html_file"
+    if [[ $iterations -ge $max_iterations ]]; then
+        echo "  ⚠️  Reached maximum iterations ($max_iterations)"
     fi
+    
+    echo "  ✅ Completed $iterations passes"
     
     # Update original file
     mv "$temp_file" "$html_file"

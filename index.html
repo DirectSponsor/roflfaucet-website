@@ -113,78 +113,50 @@
 
 <!-- UNIQUE PAGE CONTENT GOES HERE -->
                     <div class="content-header">
-                        <h1>🚰 ROFLFaucet - Advanced</h1>
-                        <p>Earn UselessCoins every minute with our centralized OAuth system!</p>
+                        <h1>🔐 OAuth Simple Faucet</h1>
+                        <p>Earn UselessCoins every 5 minutes with our secure DirectSponsor OAuth integration</p>
                     </div>
                     
                     <div class="content-container">
-                        <!-- Debug Message Display -->
-                        <div id="message-display" class="message" style="display: none;"></div>
+                        <!-- OAuth Message -->
+                        <div id="oauth-message" class="message"></div>
                         
-                        <!-- Welcome Section -->
-                        <div id="welcome-section" class="content-entry">
+                        <!-- Login Section -->
+                        <div id="oauth-login-section" class="content-entry">
                             <div class="entry-content">
-                                <h2>🎯 Ready to Start Claiming?</h2>
-                                <div class="highlight-box success">
-                                    <strong>✨ Advanced Centralized OAuth Faucet</strong><br>
-                                    • Secure authentication via auth.directsponsor.org<br>
-                                    • Centralized balance tracking<br>
-                                    • Real-time claim validation<br>
-                                    • 60-second cooldown (debug mode)
+                                <h2>🔐 Login Required</h2>
+                                <div class="highlight-box info">
+                                    <strong>🔒 Secure OAuth Login</strong><br>
+                                    Click below to login with DirectSponsor OAuth.<br>
+                                    You'll be redirected to auth.directsponsor.org for secure authentication.
                                 </div>
-                                <div style="text-align: center; margin: 30px 0;">
-                                    <button id="start-claiming-btn" class="cta-button" style="background: linear-gradient(135deg, #4CAF50, #45a049); font-size: 1.2em; padding: 15px 30px;">
-                                        🚀 Start Claiming Tokens!
-                                    </button>
+                                <div style="text-align: center; margin: 20px 0;">
+                                    <button id="oauth-login-btn" class="cta-button">🚀 Login with DirectSponsor</button>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- User Interface Section -->
-                        <div id="user-interface" class="content-entry" style="display: none;">
+                        <!-- Faucet Section -->
+                        <div id="oauth-faucet-section" class="content-entry" style="display: none;">
                             <div class="entry-content">
-                                <h2>🎉 Welcome, <span id="username-display">User</span>!</h2>
+                                <h2>🎉 Welcome, <span id="oauth-username">User</span>!</h2>
                                 
-                                <!-- Balance Dashboard -->
-                                <div class="stats-display" style="display: flex; gap: 20px; justify-content: space-around; margin: 20px 0;">
+                                <!-- Balance Display -->
+                                <div class="stats-display">
                                     <div class="stats-item">
-                                        <span class="stats-number" id="token-balance">0.00</span>
-                                        <span class="stats-label">WorthlessTokens</span>
-                                    </div>
-                                    <div class="stats-item">
-                                        <span class="stats-number" id="coin-balance">0.00</span>
+                                        <span class="stats-number" id="oauth-balance">0</span>
                                         <span class="stats-label">UselessCoins</span>
-                                    </div>
-                                    <div class="stats-item">
-                                        <span class="stats-number" id="claims-display">0</span>
-                                        <span class="stats-label">Total Claims</span>
                                     </div>
                                 </div>
                                 
                                 <!-- Claim Button -->
                                 <div style="text-align: center; margin: 30px 0;">
-                                    <button id="claim-btn" class="claim-button">
-                                        <span class="btn-text">🎲 Claim 5 UselessCoins!</span>
-                                    </button>
-                                </div>
-                                
-                                <!-- Countdown Display -->
-                                <div id="countdown-display" style="text-align: center; font-size: 1.2em; margin: 15px 0;"></div>
-                                
-                                <!-- Captcha Section -->
-                                <div id="captcha-section" style="display: none; text-align: center; margin: 20px 0;">
-                                    <h3>🛡️ Security Check</h3>
-                                    <div class="h-captcha" data-sitekey="YOUR_HCAPTCHA_SITE_KEY" data-callback="hcaptchaCallback" data-expired-callback="hcaptchaExpired"></div>
-                                    
-                                    <!-- Fallback for testing -->
-                                    <div id="captcha-fallback" style="display: none; margin: 15px 0;">
-                                        <button id="simulate-captcha-btn" class="secondary-button">🧪 Simulate Captcha (Testing)</button>
-                                    </div>
+                                    <button id="oauth-claim-btn" class="claim-button">🎲 Claim 5 UselessCoins</button>
                                 </div>
                                 
                                 <!-- Logout Button -->
-                                <div style="text-align: center; margin-top: 30px;">
-                                    <button id="logout-btn" class="secondary-button">🚪 Logout</button>
+                                <div style="text-align: center;">
+                                    <button id="oauth-logout-btn" class="secondary-button">🚪 Logout</button>
                                 </div>
                             </div>
                         </div>
@@ -193,12 +165,12 @@
                         <div class="content-entry">
                             <div class="entry-content">
                                 <div class="highlight-box">
-                                    <strong>🔧 Advanced Centralized OAuth Faucet:</strong><br>
-                                    • Real OAuth flow with auth.directsponsor.org<br>
-                                    • Centralized user data via data.directsponsor.org<br>
-                                    • Debug mode with 60-second cooldown<br>
-                                    • hCaptcha integration (with testing fallback)<br>
-                                    • Real-time balance updates
+                                    <strong>OAuth Simple Faucet:</strong><br>
+                                    • Real OAuth authentication via auth.directsponsor.org<br>
+                                    • Real balance API via data.directsponsor.org<br>
+                                    • Claim API integration<br>
+                                    • No captcha (focused on core functionality)<br>
+                                    • Check browser console for detailed logs
                                 </div>
                             </div>
                         </div>
@@ -307,6 +279,6 @@
 
 <!-- include end footer.html -->
 
-<!-- Advanced Faucet JavaScript -->
-<script src="script.js"></script>
+<!-- Simple OAuth Faucet JavaScript (Working) -->
+<script src="oauth-simple.js"></script>
 

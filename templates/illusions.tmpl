@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- #bbinclude "head.html" -->
+<body>
+<!-- #bbinclude "header.html" -->
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <div class="content-grid">
+<!--#include file="includes/sidebar-left.html" -->
+
+                <!-- Main Content -->
+                <section class="main-content">
+                    <div class="content-header">
+                        <h1>👁️ Optical Illusions</h1>
+                        <p>Explore fascinating optical illusions and learn about visual perception and brain science</p>
+                    </div>
+                    
+                    <div class="content-container">
+                        <!-- Illusion Gallery -->
+                        <div class="illusion-gallery">
+                            <div class="illusion-display" id="illusion-display" onclick="expandIllusion()">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect width='600' height='400' fill='%23f8f9fa'/%3E%3Ctext x='300' y='180' text-anchor='middle' font-family='Arial' font-size='24' fill='%23666'%3E👁️ Optical Illusion%3C/text%3E%3Ctext x='300' y='220' text-anchor='middle' font-family='Arial' font-size='16' fill='%23999'%3EClick to view illusion gallery%3C/text%3E%3Ctext x='300' y='250' text-anchor='middle' font-family='Arial' font-size='14' fill='%23999'%3E(Content will be loaded from your ROFL folders)%3C/text%3E%3C/svg%3E" 
+                                     alt="Optical Illusion Placeholder" class="illusion-image" id="illusion-image">
+                            </div>
+                            
+                            <div class="illusion-caption">
+                                <div class="illusion-title" id="illusion-title">Welcome to the Illusions Gallery</div>
+                                <div class="illusion-description" id="illusion-description">
+                                    This gallery features optical illusions from your ROFL folders with educational captions. 
+                                    Click any illusion to view it in a smart-sized overlay that looks perfect on any monitor - 
+                                    never too big on huge screens, never too small on mobile devices.
+                                </div>
+                            </div>
+                            
+                            <div class="illusion-controls">
+                                <div class="nav-dots">
+                                    <div class="nav-dot active"></div>
+                                    <div class="nav-dot"></div>
+                                    <div class="nav-dot"></div>
+                                    <div class="nav-dot"></div>
+                                    <div class="nav-dot"></div>
+                                </div>
+                                <button class="illusion-nav-btn" onclick="nextIllusion()">Next Illusion →</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+<!--#include file="includes/sidebar-right.html" -->
+            </div>
+        </div>
+    </main>
+
+<!--#include file="includes/footer.html" -->
+
+<!-- JavaScript for functionality -->
+<script>
+    let currentIllusion = 0;
+    const totalIllusions = 5; // Placeholder count
+    // Additional scripts...
+</script>
+
+</body>
+</html>
+

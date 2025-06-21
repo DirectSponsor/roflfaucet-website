@@ -1,15 +1,35 @@
-# Simplified Include System Design
-*Future CMS Implementation Strategy*  
+# SatoshiHost CMS Integration Design
+*Current System Architecture & Future CMS Implementation*  
 *Date: June 21, 2025*
 
 ## Overview
 
-This document outlines the simplified include system design for future WordPress-style CMS implementation. This approach eliminates template file complexity while maintaining all benefits of modular HTML development.
+This document outlines the current include system architecture for ROFLFaucet and how it integrates with the future **SatoshiHost CMS**. The system uses a master template approach with modular includes, providing consistent layout across all pages while keeping only the center content unique.
 
-## Core Concept
+## Current System Status
+
+### **Active Implementation**
+ROFLFaucet currently uses a **master template approach** with modular includes:
+
+- **Master template structure**: All pages use identical layout with includes
+- **Consistent layout**: Header, sidebars, footer identical across all pages
+- **Unique center content**: Only the main content area differs per page
+- **Generic CSS classes**: Reusable styles (`.content-header`, `.content-container`, `.content-entry`)
+- **Linear build process**: Simple include replacement without complexity
+
+### **Layout Consistency Principle**
+> **"All pages should come out the same except for the center section. If one is different, something is wrong."**
+
+This ensures:
+- Uniform user experience across the site
+- Easy maintenance and updates
+- Clear debugging (differences indicate issues)
+- Future SatoshiHost CMS integration readiness
+
+## Future SatoshiHost CMS Concept
 
 ### **HTML Files with Include Markers**
-Instead of separate template files, use **regular HTML files** with visible include markers:
+The future SatoshiHost CMS will use **regular HTML files** with visible include markers:
 
 ```html
 <!DOCTYPE html>
@@ -288,9 +308,16 @@ function saveContent(htmlFile, newContent) {
 
 ## Conclusion
 
-The simplified include system provides all benefits of the current template system while being perfectly suited for future CMS development. The approach eliminates complexity while maintaining transparency and developer productivity.
+The simplified include system provides all benefits of the current template system while being perfectly suited for future **SatoshiHost CMS** development. The approach eliminates complexity while maintaining transparency and developer productivity.
 
-**Key Advantage**: When we build the CMS interface, it will work seamlessly with this system because the editable content boundaries are clearly defined and easily detectable.
+**Key Advantage**: When we build the **SatoshiHost CMS** interface, it will work seamlessly with this system because the editable content boundaries are clearly defined and easily detectable.
+
+**SatoshiHost CMS Benefits**:
+- Clean separation between layout and content
+- No complex template dependencies
+- Developer-friendly HTML-based approach
+- Ready for multi-site deployment across SatoshiHost network
+- Consistent with SatoshiHost ecosystem standards
 
 ---
 

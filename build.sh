@@ -79,44 +79,36 @@ EOF
     echo "  ✅ Built: $output_file"
 }
 
-# Build all template files
-template_count=0
+# Process all HTML files with include tags
+processed_count=0
 
-# Process both .template.html and .tmpl files
-for template in templates/*.template.html templates/*.tmpl; do
-    if [[ -f "$template" ]]; then
-        # Extract filename and determine output name
-        if [[ "$template" == *.template.html ]]; then
-            basename=$(basename "$template" .template.html)
-            output_file="${basename}.html"
-        elif [[ "$template" == *.tmpl ]]; then
-            basename=$(basename "$template" .tmpl)
-            output_file="${basename}.html"
-        fi
+# Find and process HTML files that contain include tags
+for htmlfile in *.html; do
+    if [[ -f "$htmlfile" ]] && grep -q "include start" "$htmlfile"; then
+        # Create backup
+        cp "$htmlfile" "${htmlfile}.bak"
         
-        process_includes "$template" "$output_file"
-        ((template_count++))
+        # Process includes in place  
+        process_includes "$htmlfile" "$htmlfile"
+        ((processed_count++))
     fi
 done
 
-if [[ $template_count -eq 0 ]]; then
-    echo "📁 No template files found in templates/ directory"
-    echo "💡 Create files like templates/page.template.html or templates/page.tmpl to get started"
+if [[ $processed_count -eq 0 ]]; then
+    echo "📁 No HTML files with includes found"
+    echo "💡 Add include tags to HTML files like: \u003c!-- include start header.html --\u003e"
 else
     echo ""
-    echo "🎉 Build complete! Processed $template_count template(s)"
+    echo "🎉 Build complete! Updated $processed_count HTML file(s)"
     echo ""
-    echo "📝 Template syntax (choose your style):"
-    echo "   Simple:    <!--#include file=\"includes/header.html\" -->"
-    echo "   BBEdit:    <!-- #bbinclude \"header.html\""
-    echo "              #TITLE#=\"Page Title\""
-    echo "              #KEYWORDS#=\"seo, keywords\""
-    echo "              -->"
+    echo "📝 Include syntax:"
+    echo "   \u003c!-- include start header.html --\u003e"
+    echo "   \u003c!-- include end header.html --\u003e"
     echo ""
     echo "📂 Directory structure:"
-    echo "   templates/           - Your .template.html or .tmpl source files"
-    echo "   includes/           - Shared HTML snippets with #PLACEHOLDER# support"
-    echo "   *.html              - Generated output files"
+    echo "   includes/           - Shared HTML snippets (header, footer, sidebars)"
+    echo "   *.html              - Your pages (edit these directly)"
+    echo "   *.html.bak          - Automatic backups created during build"
 fi
 
 # Ensure script exits with success

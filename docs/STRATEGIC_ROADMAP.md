@@ -17,8 +17,9 @@ We're building an integrated ecosystem where each component reinforces the other
 ### **Phase 1: Foundation (Current)**
 1. **Perfect the technical foundation** - Get all sites working flawlessly
 2. **Complete content management system** - Enable easy updates and scaling
-3. **Automate hosting signup/purchase** - Remove manual bottlenecks
-4. **Polish user experience** - Professional presentation across all properties
+3. **Implement dual-mode gaming system** - Casino slots with demo/real modes
+4. **Automate hosting signup/purchase** - Remove manual bottlenecks
+5. **Polish user experience** - Professional presentation across all properties
 
 ### **Phase 2: Launch**
 5. **Deploy nostr relay** - Build community and visibility on robust VPS

@@ -20,14 +20,40 @@ class CasinoSlotMachine {
         this.bigWinPool = 0;
         this.bigWinThreshold = 1000; // "4 figures to look big"
         
-        // Symbol definitions (matching casino images)
+        // Symbol definitions (classic casino fruits + specials)
         this.symbols = [
-            { emoji: '🍒', name: 'cherry', value: 2, weight: 40 },      // Most common
-            { emoji: '🍌', name: 'banana', value: 3, weight: 30 },
-            { emoji: '🍉', name: 'watermelon', value: 5, weight: 20 },
-            { emoji: '🔴', name: 'seven', value: 10, weight: 8 },       // Lucky 7
-            { emoji: '📊', name: 'bar', value: 15, weight: 2 }          // BAR symbol
+            { emoji: '🍒', name: 'cherry', value: 35, weight: 35 },      // Cherry - most common
+            { emoji: '🍌', name: 'banana', value: 15, weight: 25 },      // Banana  
+            { emoji: '🍉', name: 'watermelon', value: 12, weight: 20 },  // Watermelon
+            { emoji: '🍊', name: 'orange', value: 8, weight: 15 },       // Orange (extra variety)
+            { emoji: '🔴', name: 'seven', value: 400, weight: 3 },       // Lucky 7 - Jackpot!
+            { emoji: '📊', name: 'bar', value: 75, weight: 2 }          // BAR symbol - rarest
         ];
+        
+        // Payout combinations (player-favored economics)
+        this.payouts = {
+            // Triple matches - generous payouts
+            '🔴🔴🔴': 400,    // Triple 7s - Jackpot
+            '📊📊📊': 75,     // Triple BARs
+            '🍒🍒🍒': 35,     // Triple Cherries
+            '🍌🍌🍌': 15,     // Triple Bananas
+            '🍉🍉🍉': 12,     // Triple Watermelons
+            '🍊🍊🍊': 10,     // Triple Oranges
+            
+            // Partial matches - frequent smaller wins
+            '🔴🍒_': 15,      // 7 + Cherry + Any
+            '🍒🍒_': 8,       // Two Cherries + Any
+            '🍒__': 5,        // One Cherry + Any + Any
+            '🍌🍌_': 6,       // Two Bananas + Any
+            '🍉🍉_': 5,       // Two Watermelons + Any
+            '🍊🍊_': 4,       // Two Oranges + Any
+            
+            // Loss (but with long-term player advantage built into weights)
+            'no_match': 0     // Real loss, but rare due to generous symbol weights
+        };
+        
+        // Player advantage system - returns 105% over time (house edge = -5%)
+        this.playerAdvantage = 1.05;
         
         // Level system (Andy's progression economics)
         this.levels = {
@@ -49,10 +75,66 @@ class CasinoSlotMachine {
         console.log('🎰 Casino Slot Machine initialized!');
     }
     
-    loadUserData() {
-        // Load from your existing OAuth/balance system
-        // For now, using localStorage for demo
-        const saved = localStorage.getItem('slotMachineData');
+    async loadUserData() {
+        // Check if user is logged in (using your OAuth system)
+        this.isLoggedIn = await this.checkLoginStatus();
+        
+        if (this.isLoggedIn) {
+            // Logged-in users: Load real balance from API
+            await this.loadRealUserData();
+        } else {
+            // Anonymous users: Use localStorage for demo play
+            this.loadDemoUserData();
+        }
+    }
+    
+    async checkLoginStatus() {
+        // Integration with your existing OAuth system
+        try {
+            const token = localStorage.getItem('oauth_token');
+            if (!token) return false;
+            
+            // You can expand this to validate token with your auth API
+            return true;
+        } catch (error) {
+            console.log('Not logged in, using demo mode');
+            return false;
+        }
+    }
+    
+    async loadRealUserData() {
+        try {
+            // Call your existing balance API
+            const response = await fetch('/api/user/balance', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('oauth_token')}`
+                }
+            });
+            const data = await response.json();
+            
+            this.credits = data.spendableBalance || 100;
+            this.userLevel = data.level || 1;
+            
+            // Load slot-specific stats from localStorage as backup
+            const slotStats = localStorage.getItem('slotMachineStats');
+            if (slotStats) {
+                const stats = JSON.parse(slotStats);
+                this.totalSpins = stats.totalSpins || 0;
+                this.totalWagered = stats.totalWagered || 0;
+                this.totalWon = stats.totalWon || 0;
+                this.bigWinPool = stats.bigWinPool || 0;
+            }
+        } catch (error) {
+            console.error('Failed to load real user data:', error);
+            // Fallback to demo mode
+            this.isLoggedIn = false;
+            this.loadDemoUserData();
+        }
+    }
+    
+    loadDemoUserData() {
+        // Anonymous users: Use localStorage for demo
+        const saved = localStorage.getItem('slotMachineDemo');
         if (saved) {
             const data = JSON.parse(saved);
             this.credits = data.credits || 0;
@@ -62,12 +144,40 @@ class CasinoSlotMachine {
             this.totalWon = data.totalWon || 0;
             this.bigWinPool = data.bigWinPool || 0;
         } else {
-            // New user gets starting credits
-            this.credits = 100;
+            // New demo user gets starting credits
+            this.credits = 500; // More generous for demo to get them hooked!
         }
     }
     
-    saveUserData() {
+    async saveUserData() {
+        if (this.isLoggedIn) {
+            // Logged-in users: Save to API with transaction tracking
+            await this.saveRealUserData();
+        } else {
+            // Anonymous users: Save to localStorage for demo
+            this.saveDemoUserData();
+        }
+    }
+    
+    async saveRealUserData() {
+        try {
+            // Save slot-specific stats to localStorage
+            const slotStats = {
+                totalSpins: this.totalSpins,
+                totalWagered: this.totalWagered,
+                totalWon: this.totalWon,
+                bigWinPool: this.bigWinPool
+            };
+            localStorage.setItem('slotMachineStats', JSON.stringify(slotStats));
+            
+            // Balance is managed by API calls during gameplay
+            // No need to save credits here as they're handled in real-time
+        } catch (error) {
+            console.error('Failed to save real user data:', error);
+        }
+    }
+    
+    saveDemoUserData() {
         const data = {
             credits: this.credits,
             userLevel: this.userLevel,
@@ -76,7 +186,7 @@ class CasinoSlotMachine {
             totalWon: this.totalWon,
             bigWinPool: this.bigWinPool
         };
-        localStorage.setItem('slotMachineData', JSON.stringify(data));
+        localStorage.setItem('slotMachineDemo', JSON.stringify(data));
     }
     
     setupEventListeners() {
@@ -85,6 +195,7 @@ class CasinoSlotMachine {
         window.increaseBet = () => this.adjustBet(1);
         window.decreaseBet = () => this.adjustBet(-1);
         window.claimWinnings = () => this.claimWinnings();
+        window.toggleMachineView = () => this.toggleMachineView();
     }
     
     populateReels() {
@@ -131,7 +242,14 @@ class CasinoSlotMachine {
         }
         
         this.isSpinning = true;
-        this.credits -= this.currentBet;
+        
+        // Process bet deduction based on user type
+        if (this.isLoggedIn) {
+            await this.processBet(this.currentBet);
+        } else {
+            this.credits -= this.currentBet;
+        }
+        
         this.totalSpins++;
         this.totalWagered += this.currentBet;
         
@@ -201,69 +319,110 @@ class CasinoSlotMachine {
         reel.classList.remove('spinning', 'accelerating');
         reel.classList.add('stopping');
         
-        // Set the target symbol in the visible middle position
-        const symbolsContainer = reel.querySelector('.symbols-container');
-        const symbols = symbolsContainer.querySelectorAll('.symbol');
-        
-        // Find a good position to place our target symbol (around middle of visible area)
-        const targetIndex = Math.floor(symbols.length / 2) + 1; // Middle of the symbol strip
-        if (symbols[targetIndex]) {
-            symbols[targetIndex].textContent = targetSymbol.emoji;
-            symbols[targetIndex].dataset.name = targetSymbol.name;
-            symbols[targetIndex].dataset.value = targetSymbol.value;
-        }
-        
-        // Add bounce effect after stopping animation completes
+        // After animation completes, update the visible symbols without breaking animation
         setTimeout(() => {
+            const symbolsContainer = reel.querySelector('.symbols-container');
+            const symbols = symbolsContainer.querySelectorAll('.symbol');
+            
+            // Reset any previous transform and find the symbols in the visible area
+            symbolsContainer.style.transform = '';
+            
+            // Update the first 3 symbols (which should be visible after the animation)
+            // Symbol 0: top visible
+            // Symbol 1: center visible (main target) 
+            // Symbol 2: bottom visible
+            if (symbols[0]) {
+                const randomTop = this.getRandomSymbol();
+                symbols[0].textContent = randomTop.emoji;
+                symbols[0].dataset.name = randomTop.name;
+                symbols[0].dataset.value = randomTop.value;
+            }
+            
+            if (symbols[1]) {
+                symbols[1].textContent = targetSymbol.emoji;
+                symbols[1].dataset.name = targetSymbol.name;
+                symbols[1].dataset.value = targetSymbol.value;
+            }
+            
+            if (symbols[2]) {
+                const randomBottom = this.getRandomSymbol();
+                symbols[2].textContent = randomBottom.emoji;
+                symbols[2].dataset.name = randomBottom.name;
+                symbols[2].dataset.value = randomBottom.value;
+            }
+            
             reel.classList.remove('stopping');
             reel.classList.add('bounce');
             
             setTimeout(() => {
                 reel.classList.remove('bounce');
             }, 600);
-        }, 1200); // Wait for stopping animation to complete
+        }, 1200);
     }
     
     calculateWinResult() {
-        // Andy's "no net loss" system - users always gain over time
-        const baseReward = this.currentBet * 0.6; // 60% return minimum
         const levelMultiplier = this.levels[this.userLevel].multiplier;
         
-        // Check for big win opportunity
+        // Check for big win opportunity first
         const shouldGiveBigWin = this.shouldTriggerBigWin();
         
         if (shouldGiveBigWin) {
             return this.createBigWin();
         }
         
-        // Regular win calculation
-        const winChance = 0.7; // 70% win rate (Andy's "no net loss")
-        const isWin = Math.random() < winChance;
+        // Generate three random symbols
+        const symbol1 = this.getRandomSymbol();
+        const symbol2 = this.getRandomSymbol();
+        const symbol3 = this.getRandomSymbol();
+        const symbols = [symbol1, symbol2, symbol3];
         
-        if (isWin) {
-            // Create matching symbols
-            const winSymbol = this.getRandomSymbol();
-            const symbols = [winSymbol, winSymbol, winSymbol];
-            const winAmount = Math.floor(baseReward * winSymbol.value * levelMultiplier);
-            
-            return {
-                isWin: true,
-                isBigWin: false,
-                symbols: symbols,
-                winAmount: winAmount
-            };
-        } else {
-            // Even on \"loss\", give small consolation (no net loss principle)
-            const symbols = [this.getRandomSymbol(), this.getRandomSymbol(), this.getRandomSymbol()];
-            const consolation = Math.floor(baseReward * 0.3);
-            
-            return {
-                isWin: false,
-                isBigWin: false,
-                symbols: symbols,
-                winAmount: consolation
-            };
+        // Check for winning combinations
+        let winAmount = this.calculatePayoutAmount(symbols, levelMultiplier);
+        
+        return {
+            isWin: winAmount > 0,
+            isBigWin: false,
+            symbols: symbols,
+            winAmount: winAmount
+        };
+    }
+    
+    calculatePayoutAmount(symbols, multiplier = 1) {
+        const [s1, s2, s3] = symbols;
+        const combo = s1.emoji + s2.emoji + s3.emoji;
+        
+        // Check for exact triple matches first
+        if (this.payouts[combo]) {
+            return Math.floor(this.payouts[combo] * this.currentBet * multiplier);
         }
+        
+        // Check for partial matches (generous system)
+        if (s1.emoji === '🔴' && s2.emoji === '🍒') {
+            return Math.floor(this.payouts['🔴🍒_'] * this.currentBet * multiplier);
+        }
+        
+        if (s1.emoji === '🍒' && s2.emoji === '🍒') {
+            return Math.floor(this.payouts['🍒🍒_'] * this.currentBet * multiplier);
+        }
+        
+        if (s1.emoji === '🍌' && s2.emoji === '🍌') {
+            return Math.floor(this.payouts['🍌🍌_'] * this.currentBet * multiplier);
+        }
+        
+        if (s1.emoji === '🍉' && s2.emoji === '🍉') {
+            return Math.floor(this.payouts['🍉🍉_'] * this.currentBet * multiplier);
+        }
+        
+        if (s1.emoji === '🍊' && s2.emoji === '🍊') {
+            return Math.floor(this.payouts['🍊🍊_'] * this.currentBet * multiplier);
+        }
+        
+        if (s1.emoji === '🍒') {
+            return Math.floor(this.payouts['🍒__'] * this.currentBet * multiplier);
+        }
+        
+        // True loss - but weighted to be uncommon (anti-casino economics)
+        return this.payouts.no_match;
     }
     
     shouldTriggerBigWin() {
@@ -313,12 +472,11 @@ class CasinoSlotMachine {
             await new Promise(resolve => setTimeout(resolve, 1500));
         }
         
-        // Add winnings and enable claim
-        this.credits += result.winAmount;
-        this.lastWin = result.winAmount;
-        this.totalWon += result.winAmount;
-        
+        // Process winnings based on user type
         if (result.winAmount > 0) {
+            await this.processWin(result.winAmount);
+            this.lastWin = result.winAmount;
+            this.totalWon += result.winAmount;
             this.enableClaimButton();
         }
         
@@ -392,6 +550,101 @@ class CasinoSlotMachine {
         document.querySelectorAll('.bet-btn').forEach(btn => btn.disabled = false);
     }
     
+    toggleMachineView() {
+        const machine = document.getElementById('slot-machine');
+        machine.classList.toggle('flipped');
+    }
+    
+    async processWin(amount) {
+        if (this.isLoggedIn) {
+            // Logged-in users: Add to real balance via API with transaction tracking
+            await this.addToRealBalance(amount, 'gaming_temp');
+        } else {
+            // Anonymous users: Just add to localStorage balance
+            this.credits += amount;
+        }
+    }
+    
+    async processBet(amount) {
+        if (this.isLoggedIn) {
+            // Logged-in users: Deduct from real balance via API with transaction tracking
+            await this.subtractFromRealBalance(amount, 'gaming_temp');
+        }
+        // Anonymous users: Already deducted in spin() method
+    }
+    
+    async addToRealBalance(amount, transactionType = 'gaming_temp') {
+        try {
+            const response = await fetch('/api/user/balance/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('oauth_token')}`
+                },
+                body: JSON.stringify({
+                    amount: amount,
+                    source: transactionType,
+                    description: `Slot machine win: ${amount} credits`
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.credits = data.newBalance;
+            } else {
+                console.error('Failed to add to real balance');
+                // Fallback to local addition
+                this.credits += amount;
+            }
+        } catch (error) {
+            console.error('Error adding to real balance:', error);
+            // Fallback to local addition
+            this.credits += amount;
+        }
+    }
+    
+    async subtractFromRealBalance(amount, transactionType = 'gaming_temp') {
+        try {
+            const response = await fetch('/api/user/balance/subtract', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('oauth_token')}`
+                },
+                body: JSON.stringify({
+                    amount: amount,
+                    source: transactionType,
+                    description: `Slot machine bet: ${amount} credits`
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.credits = data.newBalance;
+            } else {
+                console.error('Failed to subtract from real balance');
+            }
+        } catch (error) {
+            console.error('Error subtracting from real balance:', error);
+        }
+    }
+    
+    showLoginPrompt() {
+        // Show a notice to anonymous users about signing up
+        const promptDiv = document.createElement('div');
+        promptDiv.className = 'login-prompt';
+        promptDiv.innerHTML = `
+            <div class="login-prompt-content">
+                <h3>🎰 Sign Up to Keep Your Winnings!</h3>
+                <p>You've won <strong>${this.totalWon} demo credits</strong>!</p>
+                <p>Create an account to convert them to real UselessCoins.</p>
+                <button onclick="window.location.href='/auth'">Sign Up Now</button>
+                <button onclick="this.parentElement.parentElement.remove()">Continue Demo</button>
+            </div>
+        `;
+        document.body.appendChild(promptDiv);
+    }
+    
     updateDisplay() {
         // Update stats bar
         document.getElementById('total-spins').textContent = this.totalSpins.toLocaleString();
@@ -402,6 +655,17 @@ class CasinoSlotMachine {
         document.getElementById('last-win').textContent = this.lastWin;
         document.getElementById('current-balance').textContent = this.credits;
         document.getElementById('current-bet').textContent = this.currentBet;
+        
+        // Show different text for demo vs real mode
+        const balanceLabel = document.querySelector('.control-label[for="current-balance"]');
+        if (balanceLabel) {
+            balanceLabel.textContent = this.isLoggedIn ? 'CREDITS' : 'DEMO CREDITS';
+        }
+        
+        // Show login prompt for demo users with big wins
+        if (!this.isLoggedIn && this.totalWon > 100 && this.totalSpins % 20 === 0) {
+            this.showLoginPrompt();
+        }
         
         // Update spin button state
         const spinBtn = document.getElementById('spin-btn');

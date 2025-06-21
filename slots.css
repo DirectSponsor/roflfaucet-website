@@ -53,6 +53,88 @@
     margin-bottom: 20px;
     border: 4px solid #34495e;
     box-shadow: inset 0 5px 15px rgba(0,0,0,0.2);
+    perspective: 1000px;
+    height: 280px;
+    overflow: hidden;
+}
+
+/* Machine Flip Mechanism */
+.machine-front,
+.machine-back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 20px;
+    backface-visibility: hidden;
+    transition: transform 0.8s ease;
+    border-radius: 6px;
+}
+
+.machine-front {
+    transform: rotateY(0deg);
+}
+
+.machine-back {
+    transform: rotateY(180deg);
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    color: white;
+}
+
+.slot-machine.flipped .machine-front {
+    transform: rotateY(-180deg);
+}
+
+.slot-machine.flipped .machine-back {
+    transform: rotateY(0deg);
+}
+
+/* Hide control panel when viewing payouts */
+.slot-machine.flipped ~ .control-panel {
+    opacity: 0.3;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+/* Flip Button */
+.flip-button {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 15;
+}
+
+.flip-button:hover {
+    background: linear-gradient(135deg, #e67e22, #d68910);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+}
+
+.flip-button .flip-text {
+    display: block;
+}
+
+.slot-machine.flipped .flip-button .flip-text::before {
+    content: "REELS ";
+}
+
+.slot-machine.flipped .flip-button .flip-text {
+    display: none;
+}
+
+.slot-machine.flipped .flip-button::after {
+    content: "REELS";
 }
 
 .reel-container {
@@ -459,6 +541,147 @@
     }
 }
 
+/* ============================= */
+/* PAYOUT TABLE STYLES           */
+/* ============================= */
+
+.payout-table {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 15px 10px;
+}
+
+.payout-grid {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    justify-content: space-between;
+    max-height: 100%;
+}
+
+.payout-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(52, 73, 94, 0.8);
+    border-radius: 4px;
+    padding: 6px 10px;
+    border: 1px solid #7f8c8d;
+    transition: all 0.3s ease;
+    flex: 1;
+    min-height: 0;
+}
+
+.payout-row:hover {
+    background: rgba(52, 73, 94, 1);
+    transform: translateX(3px);
+    border-color: #f39c12;
+}
+
+.payout-row.jackpot {
+    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+    border-color: #f1c40f;
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.3);
+}
+
+.payout-row.high {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    border-color: #f39c12;
+}
+
+.payout-row.low {
+    background: rgba(52, 73, 94, 0.6);
+    border-color: #95a5a6;
+}
+
+.payout-row.consolation {
+    background: rgba(127, 140, 141, 0.5);
+    border-color: #bdc3c7;
+    font-style: italic;
+}
+
+.combo {
+    font-size: 1rem;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    flex: 1;
+    text-align: left;
+}
+
+.credits {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #f1c40f;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.3);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid #f39c12;
+    min-width: 40px;
+    text-align: center;
+}
+
+.credits.special {
+    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+    color: #fff;
+    border-color: #f1c40f;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+/* BIG WIN styles */
+.payout-row.bigwin {
+    background: linear-gradient(135deg, #f39c12, #e67e22) !important;
+    border-color: #f1c40f;
+    box-shadow: 0 0 15px rgba(241, 196, 15, 0.5);
+}
+
+.bigwin-image {
+    height: 18px;
+    width: auto;
+    max-width: 60px;
+    object-fit: contain;
+}
+
+/* Better contrast for "any" symbols */
+.any-symbol {
+    color: #ecf0f1;
+    font-weight: bold;
+    font-size: 0.7rem;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.3);
+    padding: 1px 3px;
+    border-radius: 2px;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+/* Mobile Payout Table */
+@media (max-width: 768px) {
+    .payout-header h3 {
+        font-size: 1rem;
+    }
+    
+    .payout-row {
+        padding: 6px 8px;
+    }
+    
+    .combo {
+        font-size: 0.9rem;
+    }
+    
+    .credits {
+        font-size: 1rem;
+        padding: 1px 6px;
+    }
+    
+    .payout-footer p {
+        font-size: 0.7rem;
+    }
+}
+
 /* Special Effects */
 .symbol.winning {
     animation: symbolWin 1s ease-in-out infinite;
@@ -469,5 +692,69 @@
 @keyframes symbolWin {
     0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(241, 196, 15, 0); }
     50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(241, 196, 15, 0.8); }
+}
+
+/* Login Prompt for Demo Users */
+.login-prompt {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+.login-prompt-content {
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    color: white;
+    border: 3px solid #f39c12;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    max-width: 400px;
+    margin: 20px;
+}
+
+.login-prompt-content h3 {
+    color: #f1c40f;
+    margin-bottom: 15px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.login-prompt-content p {
+    margin-bottom: 15px;
+    color: #ecf0f1;
+}
+
+.login-prompt-content button {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    margin: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.login-prompt-content button:first-of-type {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+}
+
+.login-prompt-content button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 

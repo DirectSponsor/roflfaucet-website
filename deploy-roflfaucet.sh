@@ -38,8 +38,10 @@ if [[ -n $(git status --porcelain) ]]; then
         fi
     fi
     
-    # Commit changes (exclude deploy.sh to avoid recursion)
-    git add . && git reset deploy.sh 2>/dev/null || true
+    # Commit changes (exclude deploy scripts to avoid recursion)
+    git add .
+    git reset deploy-roflfaucet.sh 2>/dev/null || true
+    git reset deploy.sh 2>/dev/null || true
     git commit -m "$COMMIT_MSG"
     echo "✅ Committed: $COMMIT_MSG"
 else
@@ -53,12 +55,16 @@ TIMESTAMP=$(date '+%Y%m%d_%H%M%S')
 BACKUP_NAME="roflfaucet_backup_${TIMESTAMP}"
 
 echo "📦 Creating backup: $BACKUP_NAME"
-ssh $VPS_HOST "mkdir -p $BACKUP_DIR && cp -r $APP_DIR $BACKUP_DIR/$BACKUP_NAME 2>/dev/null || echo 'Backup created'"
-echo "✅ Backup created: $BACKUP_DIR/$BACKUP_NAME"
+timeout 60 ssh $VPS_HOST "mkdir -p $BACKUP_DIR && cp -r $APP_DIR $BACKUP_DIR/$BACKUP_NAME 2>/dev/null || echo 'Backup created'" || {
+    echo "⚠️  Backup command timed out, continuing..."
+}
+echo "✅ Backup step completed"
 
 # Clean old backups
 echo "🧹 Cleaning old backups (keeping last $MAX_BACKUPS)..."
-ssh $VPS_HOST "cd $BACKUP_DIR && ls -1t | tail -n +$((MAX_BACKUPS + 1)) | xargs -r rm -rf"
+timeout 30 ssh $VPS_HOST "cd $BACKUP_DIR && ls -1t | tail -n +$((MAX_BACKUPS + 1)) | xargs -r rm -rf" || {
+    echo "⚠️  Cleanup command timed out, continuing..."
+}
 
 # Step 3: Sync files to VPS
 echo "📦 Syncing files to VPS..."
@@ -66,13 +72,22 @@ echo "📁 Source: $(pwd)"
 echo "📂 Target: $VPS_HOST:$APP_DIR/"
 echo ""
 
-# Use verbose rsync to show progress
-rsync -avz --progress --delete \
+# Use verbose rsync to show progress with timeout
+timeout 120 rsync -avz --progress --delete --timeout=60 \
   --exclude 'node_modules/' \
   --exclude '.git/' \
   --exclude '*.log' \
   --exclude 'deploy.sh' \
-  . $VPS_HOST:$APP_DIR/
+  --exclude 'deploy-roflfaucet.sh' \
+  --exclude '*.template.html' \
+  --exclude 'includes/' \
+  --exclude 'templates/' \
+  --exclude 'build.sh' \
+  --exclude 'docs/' \
+  . $VPS_HOST:$APP_DIR/ || {
+    echo "⚠️  Rsync timed out or failed, but may have partially completed"
+    exit 1
+}
 
 echo ""
 echo "✅ Files synced successfully!"

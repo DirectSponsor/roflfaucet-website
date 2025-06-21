@@ -1,6 +1,6 @@
 #!/bin/bash
-# Lightweight HTML Include Processor
-# Similar to BBEdit's include system
+# Simple BBEdit-Style Include Processor
+# Clean, fast template system for SatoshiHost network sites
 
 echo "🔨 Building HTML files with includes..."
 
@@ -15,12 +15,26 @@ process_includes() {
     # Copy input to temp file
     cp "$input_file" "$temp_file"
     
-    # Process all include directives
-    while grep -q '<!--#include file=".*" -->' "$temp_file" 2>/dev/null; do
+    # Process all include directives (both old and BBEdit style)
+    # <!--#include file="path" --> OR <!-- #bbinclude "path" -->
+    while grep -qE '<!--\s*#(bb)?include\s+(file=")?[^"]*"?\s*-->' "$temp_file" 2>/dev/null; do
         # Find the first include
-        include_line=$(grep -n '<!--#include file=".*" -->' "$temp_file" | head -1)
+        include_line=$(grep -nE '<!--\s*#(bb)?include\s+' "$temp_file" | head -1)
         line_num=$(echo "$include_line" | cut -d: -f1)
-        include_path=$(echo "$include_line" | sed 's/.*file="\([^"]*\)".*/\1/' | tr -d ' \t')
+        
+        # Extract include path from either syntax
+        if echo "$include_line" | grep -q 'file="'; then
+            # Old style: <!--#include file="path" -->
+            include_path=$(echo "$include_line" | sed 's/.*file="\([^"]*\)".*/\1/' | tr -d ' \t')
+        else
+            # BBEdit style: <!-- #bbinclude "path" -->
+            include_path=$(echo "$include_line" | sed 's/.*#bbinclude\s*"\([^"]*\)".*/\1/' | tr -d ' \t')
+        fi
+        
+        # Add includes/ prefix if not already present
+        if [[ "$include_path" != includes/* && -f "includes/$include_path" ]]; then
+            include_path="includes/$include_path"
+        fi
         
         if [[ -f "$include_path" ]]; then
             echo "  📎 Including: $include_path"
@@ -74,11 +88,17 @@ EOF
 # Build all template files
 template_count=0
 
-for template in templates/*.template.html; do
+# Process both .template.html and .tmpl files
+for template in templates/*.template.html templates/*.tmpl; do
     if [[ -f "$template" ]]; then
-        # Extract filename without .template.html extension
-        basename=$(basename "$template" .template.html)
-        output_file="${basename}.html"
+        # Extract filename and determine output name
+        if [[ "$template" == *.template.html ]]; then
+            basename=$(basename "$template" .template.html)
+            output_file="${basename}.html"
+        elif [[ "$template" == *.tmpl ]]; then
+            basename=$(basename "$template" .tmpl)
+            output_file="${basename}.html"
+        fi
         
         process_includes "$template" "$output_file"
         ((template_count++))
@@ -87,17 +107,21 @@ done
 
 if [[ $template_count -eq 0 ]]; then
     echo "📁 No template files found in templates/ directory"
-    echo "💡 Create files like templates/page.template.html to get started"
+    echo "💡 Create files like templates/page.template.html or templates/page.tmpl to get started"
 else
     echo ""
     echo "🎉 Build complete! Processed $template_count template(s)"
     echo ""
-    echo "📝 Template syntax:"
-    echo "   <!--#include file=\"includes/header.html\" -->"
+    echo "📝 Template syntax (choose your style):"
+    echo "   Simple:    <!--#include file=\"includes/header.html\" -->"
+    echo "   BBEdit:    <!-- #bbinclude \"header.html\""
+    echo "              #TITLE#=\"Page Title\""
+    echo "              #KEYWORDS#=\"seo, keywords\""
+    echo "              -->"
     echo ""
     echo "📂 Directory structure:"
-    echo "   templates/           - Your .template.html source files"
-    echo "   includes/           - Shared HTML snippets"
+    echo "   templates/           - Your .template.html or .tmpl source files"
+    echo "   includes/           - Shared HTML snippets with #PLACEHOLDER# support"
     echo "   *.html              - Generated output files"
 fi
 
